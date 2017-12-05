@@ -1,0 +1,92 @@
+<nav class="navbar navbar-default navbar-aqua navbar-fixed-top" role="navigation">
+  <!-- Brand and toggle get grouped for better mobile display -->
+  <div class="navbar-header">
+    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-ex1-collapse">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+    <a class="navbar-brand" href="#" title="Dashboard"><i class="ion ion-waterdrop"></i> <span class="visible-inline-xs">Aqua</span></a>
+  </div>
+
+  <!-- Collect the nav links, forms, and other content for toggling -->
+  <div class="collapse navbar-collapse navbar-ex1-collapse">
+    <ul class="nav navbar-nav side-nav">
+
+      <li>
+        <div class="user-info-wrap">
+          <div class="user-image">
+            <!--img src="/static/img/avatar.jpg" class="img-circle" width="65" height="65"-->
+          </div>
+          <div class="user-info">
+            <div class="username"><strong>{{ request.user.username }}</strong></div>
+            <div class="status text-uppercase"><i class="fa fa-circle color-green"></i> Online</div>
+          </div>
+        </div>
+      </li>
+
+      <li id="index"><a href="{% url 'index' %}" title="Dashboard"><i class="fa fa-dashboard primary"></i>Dashboard</a></li>
+
+      <li class="dropdown" id="asset">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-desktop success"></i>资产管理<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a class="idc_list" href="{% url 'idc_list' %}" title="Idc">数据中心</a></li>
+          <li><a class="server_list" href="{% url 'server_list' %}" title="Server">服务器</a></li>
+          <li><a class="service_list" href="{% url 'service_list' %}" title="Service">互联网服务</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs info"></i>费用管理<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#" title="Requisition">申请单</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-book warning"></i>部署管理<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#" title="Reverse">Reverse</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-tasks danger"></i>文件管理<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#" title="Upload">文件上传</a></li>
+          <li><a href="#" title="Download">文件下载</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-th primary"></i>用户管理<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#" title="Reverse">Reverse</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bar-chart-o info"></i>日志审计<b class="caret"></b></a>
+        <ul class="dropdown-menu">
+          <li><a href="#" title="Reverse">Reverse</a></li>
+        </ul>
+      </li>
+    </ul>
+
+    <ul class="nav navbar-nav navbar-right navbar-top-links">
+      <li class="dropdown user-dropdown">
+        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+          <span class="ion ion-ios7-person ion-2x"></span>
+          <span class="visible-inline-xs">Profile</span>
+        </a>
+        <ul class="dropdown-menu">
+          <li><a href="#"><i class="ion ion-ios7-person"></i> Profile</a></li>
+          <li><a href="#"><i class="ion ion-ios7-gear"></i> Settings</a></li>
+          <li class="divider"></li>
+          <li><a href="{% url 'logout' %}" data-type="out"><i class="ion ion-log-out"></i> Sign Out</a></li>
+        </ul>
+      </li>
+    </ul>
+  </div><!-- /.navbar-collapse -->
+</nav>

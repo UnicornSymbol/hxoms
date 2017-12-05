@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script src="/static/plugins/xcConfirm/js/xcConfirm.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/static/plugins/xcConfirm/css/xcConfirm.css"/>
+<link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
+<link rel="stylesheet" type="text/css" href="{% static 'plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css' %}">
+<style>
+.input-group-addon {
+    background-color: #eeeeee;
+    border-color: #96a0ad;
+    color: #333;
+}
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    background-color: #fff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-12">
+  <div class="panel panel-default">
+     <div class="panel-heading">
+        <h3 class="panel-title">服务更新</h3>
+     </div>
+     <div class="panel-body">
+       <form class="form-horizontal form-border" id="form-update" method="post" action="">
+         {% csrf_token %}
+         <div class="form-group">
+           <label class="control-label">服务名称</label>
+           {{ form.name }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">服务类型(请选择或自定义输入一个类型)</label>
+           <!--<select class="form-control" id="id_type" name="type">
+             {% for type in types %}
+               <option value="{{ type.name }}">{{ type.name }}</option>
+             {% endfor %}
+           </select>-->
+           <div class="input-group">
+             <input id="id_type" name="type" value="{{ service.type }}" class="form-control" readonly>
+             <span class="input-group-btn">
+               <select id="select1" value="{{ service.type }}" class="form-control" style="width:auto;"> <!--onchange="this.parentNode.previousElementSibling.value=this.value"-->
+                 {% for type in types %}
+                   <option value="{{ type.name }}">{{ type.name }}</option>
+                 {% endfor %}
+                 <option value="自定义输入">自定义输入</option>
+               </select>
+             </span>
+           </div>
+         </div>
+         <div class="form-group">
+           <label class="control-label">供应商</label>
+             {{ form.supplier }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">作用</label>
+           {{ form.use }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">购买费用</label>
+           {{ form.cost }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">购买日期</label>
+           <div class="input-group date form_buy_date">
+             {% if service.buy_date %}
+               <input class="form-control" id="id_buy_date" name="buy_date" value={{ service.buy_date | date:"Y-m-d" }} type="text" readonly>
+             {% else %}
+               <input class="form-control" id="id_end_date" name="end_date" value="" type="text" readonly>
+             {% endif %}
+             <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+             <span class="input-group-addon"> 
+               <span class="glyphicon glyphicon-calendar"></span> 
+             </span>
+           </div>
+         </div>
+         <div class="form-group">
+           <label class="control-label">到期日期</label>
+           <div class="input-group date form_end_date">
+             {% if service.end_date %}
+               <input class="form-control" id="id_end_date" name="end_date" value={{ service.end_date | date:"Y-m-d"}} type="text" readonly>
+             {% else %}
+               <input class="form-control" id="id_end_date" name="end_date" value="" type="text" readonly>
+             {% endif %}
+             <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+             <span class="input-group-addon">              
+               <span class="glyphicon glyphicon-calendar"></span> 
+             </span>                                       
+           </div>                                          
+         </div>
+         <div>
+           <button type="button" class="btn btn-primary btn-sm" id="update-btn">更新</button>
+         </div>
+       </form>
+     </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/validators.js"></script>
+<script src="{% static 'plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('.form_buy_date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        minView: 'month', //选择日期后，不会再跳转去选择时分秒
+        weekStart: 0,
+        todayBtn:  true,
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true,
+        pickerPosition: "top-right",
+    });
+
+    $('.form_end_date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        minView: 'month', //选择日期后，不会再跳转去选择时分秒
+        weekStart: 0,
+        todayBtn:  true,
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true,
+        pickerPosition: "top-right",
+    });
+
+    $('#select1').change(function(){
+        var value = $(this).val()
+        var typeInput = $(this).parent().prev()
+        if(value == "自定义输入"){
+            typeInput.attr("readonly", false)
+            typeInput.val("")
+        }
+        else{
+            typeInput.attr("readonly", true)
+            typeInput.val(value)
+        }
+    });
+
+    $("#form-update input").blur(function(){
+        var parent = $(this).parent();
+        parent.find("#errorinfo").remove()
+        parent.find("#feedback").remove()
+        parent.removeClass("has-success")
+        parent.removeClass("has-error")
+        if($(this).is("#id_name")){
+            $.checkName(this.value,parent,"请输入服务名称")
+        }
+
+    });
+
+    jQuery.fn.checkForm=function(){
+        $("#form-update input:not(:hidden)").each(function () {
+            var $parent = $(this).parent();
+            $parent.find("#errorinfo").remove()
+            $parent.find("#feedback").remove()
+            $parent.removeClass("has-success")
+            $parent.removeClass("has-error")
+            if($(this).is("#id_name")){
+                $.checkName(this.value,$parent,"请输入服务名称")
+            }
+        });
+    };
+    $.fn.serializeJson=function(){  
+        var serializeObj={};  
+        $(this.serializeArray()).each(function(){  
+            serializeObj[this.name]=this.value;  
+        });  
+        return serializeObj;  
+    };
+    $('#update-btn').click(function(){
+        var type = $("#id_type").val()
+        var supplier = $("#id_supplier").val()
+        var jsonData = $('#form-update').serializeJson()
+        $('#form-update').checkForm();
+        if($("#errorinfo").length == 0 && $.trim(type) != "" && supplier.length != 0){
+            $.ajax({
+                type:"POST",
+                url:window.location.href,
+                data:jsonData,
+                dataType:"json",
+                success: function(ret){
+                    if(ret["status"]=="更新成功"){
+                        var option = {
+                            onOk: function(){
+                               $(location).attr('href', "{% url 'service_list' %}");
+                            },
+                            onClose:function(){
+                               $(location).attr('href', "{% url 'service_list' %}");
+                            }
+                        }
+                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);
+                    }
+                    else{
+                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.error);
+                    }
+                }
+            })
+        }
+        else if($.trim(type) == ""){
+            window.wxc.xcConfirm("请选择或输入一个类型", window.wxc.xcConfirm.typeEnum.confirm);
+        }
+        else if(supplier.length == 0){
+            window.wxc.xcConfirm("请选择一个供应商", window.wxc.xcConfirm.typeEnum.confirm);
+        }
+        else{
+        }
+    });
+});
+</script>
+{% endblock %}

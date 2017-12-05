@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block css %}
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script src="/static/plugins/xcConfirm/js/xcConfirm.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/static/plugins/xcConfirm/css/xcConfirm.css"/>
+<link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
+<link rel="stylesheet" type="text/css" href="{% static 'plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css' %}">
+<style>
+.input-group-addon {
+    background-color: #eeeeee;
+    border-color: #96a0ad;
+    color: #333;
+}
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    background-color: #fff;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-12">
+  <div class="panel panel-default">
+     <div class="panel-heading">
+        <h3 class="panel-title">服务器更新</h3>
+     </div>
+     <div class="panel-body">
+       <form class="form-horizontal form-border" id="form-update" method="post" action="">
+         {% csrf_token %}
+         <div class="form-group">
+           <label class="control-label">IP</label>
+           {{ form.ip }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">所属机房</label>
+           {{ form.idc }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">机柜号</label>
+           {{ form.cabinet }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">机器位置</label>
+           {{ form.position }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">作用</label>
+           {{ form.use }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">购买费用</label>
+           {{ form.cost }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">购买日期</label>
+           <div class="input-group date form_buy_date">
+             {% if server.buy_date %}
+               <input class="form-control" id="id_buy_date" name="buy_date" value={{ server.buy_date | date:"Y-m-d" }} type="text" readonly>
+             {% else %}
+               <input class="form-control" id="id_end_date" name="end_date" value="" type="text" readonly>
+             {% endif %}
+             <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+             <span class="input-group-addon"> 
+               <span class="glyphicon glyphicon-calendar"></span> 
+             </span>
+           </div>
+         </div>
+         <div class="form-group">
+           <label class="control-label">到期日期</label>
+           <div class="input-group date form_end_date">
+             {% if server.end_date %}
+               <input class="form-control" id="id_end_date" name="end_date" value={{ server.end_date | date:"Y-m-d"}} type="text" readonly>
+             {% else %}
+               <input class="form-control" id="id_end_date" name="end_date" value="" type="text" readonly>
+             {% endif %}
+             <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+             <span class="input-group-addon">              
+               <span class="glyphicon glyphicon-calendar"></span> 
+             </span>                                       
+           </div>                                          
+         </div>
+         <div>
+           <button type="button" class="btn btn-primary btn-sm" id="update-btn">更新</button>
+         </div>
+       </form>
+     </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/validators.js"></script>
+<script src="{% static 'plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('.form_buy_date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        minView: 'month', //选择日期后，不会再跳转去选择时分秒
+        weekStart: 0,
+        todayBtn:  true,
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true,
+        pickerPosition: "top-right",
+    });
+
+    $('.form_end_date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        minView: 'month', //选择日期后，不会再跳转去选择时分秒
+        weekStart: 0,
+        todayBtn:  true,
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true,
+        pickerPosition: "top-right",
+    });
+
+    $("#form-update input").blur(function(){
+        //alert("test")
+        var parent = $(this).parent();
+        parent.find("#errorinfo").remove()
+        parent.find("#feedback").remove()
+        parent.removeClass("has-success")
+        parent.removeClass("has-error")
+        if($(this).is("#id_ip")){
+            //alert("test")
+            $.checkIp(this.value,parent)
+        }
+    });
+
+    jQuery.fn.checkForm=function(){
+        $("#form-update input:not(:hidden)").each(function () {
+            var $parent = $(this).parent();
+            //$parent.addClass("has-error has-feedback")
+            $parent.find("#errorinfo").remove()
+            $parent.find("#feedback").remove()
+            $parent.removeClass("has-success")
+            $parent.removeClass("has-error")
+            if($(this).is("#id_ip")){
+                //alert("test")
+                $.checkIp(this.value,$parent)
+            }
+        });
+    };
+    $.fn.serializeJson=function(){  
+        var serializeObj={};  
+        $(this.serializeArray()).each(function(){  
+            serializeObj[this.name]=this.value;  
+        });  
+        return serializeObj;  
+    };
+    $('#update-btn').click(function(){
+        //var ip = $("#id_ip").val()
+        //var idc = $("#id_idc").val()
+        //var cabinet = $("#id_cabinet").val()
+        //var position = $("#id_position").val()
+        //var use = $("#id_use").val()
+        //var cost = $("#id_cost").val()
+        var jsonData = $('#form-update').serializeJson()
+        $('#form-update').checkForm();
+        if($("#errorinfo").length == 0){
+            $.ajax({
+                type:"POST",
+                url:window.location.href,
+                data:jsonData,//{"ip": ip, "idc": idc, "cabinet": cabinet, "position": position, "use": use, "cost": cost},
+                dataType:"json",
+                success: function(ret){
+                    if(ret["status"]=="更新成功"){
+                        var option = {
+                            onOk: function(){
+                               $(location).attr('href', "{% url 'server_list' %}");
+                            },
+                            onClose:function(){
+                               $(location).attr('href', "{% url 'server_list' %}");
+                            }
+                        }
+                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);
+                    }
+                    else{
+                        //window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.error);
+                    }
+                }
+            })
+        }
+        else{
+            //alert("存在")
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    
+    <link rel="shortcut icon" href="favicon.ico?6">
+
+    <title>HX Web Server Manager</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- BootFlat -->
+    <link href="/static/css/bootflat.min.css" rel="stylesheet">
+
+    <!-- TimeLine -->
+    <link href="/static/css/timeline.css" rel="stylesheet">
+
+    <!-- Animations -->
+    <link href="/static/css/animate.css" rel="stylesheet">
+
+    <!-- Bootstrap datetimepicker -->
+    <link href="/static/css/bootstrap-datetimepicker.min.css" rel="stylesheet">
+
+    <!-- Morris -->
+    <link href="/static/css/morris.css" rel="stylesheet">
+
+    <!-- Full Calendar -->
+    <link href="/static/css/fullcalendar.css" rel="stylesheet">
+
+    <!-- Zabuto Calendar -->
+    <link href="/static/css/zabuto_calendar.min.css" rel="stylesheet">
+
+    <!-- jQuery DataTables -->
+    <link href="/static/css/bootstrap-datatables.css" rel="stylesheet">
+
+    <!-- fancyBox -->
+    <link href="/static/css/jquery.fancybox.css" rel="stylesheet">
+
+    <!-- Styles -->
+    <link href="/static/css/aqua.css" rel="stylesheet">
+
+    <!-- Fonts -->
+    <!-- <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet"> -->
+    <link href="http://brick.a.ssl.fastly.net/Open+Sans:300,400,600,700" rel="stylesheet">
+    <link href="/static/css/ionicons.min.css" rel="stylesheet">
+    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+
+    {% block css %}{% endblock %}
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+
+    <div id="wrapper">
+      {% include "nav.html" %}
+
+      <div id="content" class="container-aqua animated">
+        
+        <div class="row row-aqua">
+        {% block content %}{% endblock %}
+        </div><!-- /.row -->
+      </div><!-- /.container-aqua -->
+
+    </div><!-- /#wrapper -->
+
+    {% block modal %}
+        <!-- bootstrap 要求模态框组件放在根节点下，否则有可能遮罩层会将modal也遮挡住，不应该是把他放到了其他DIV中，而那个DIV的zindex，在同级父节点中，小于遮罩层（遮罩层由bootsrap自动添加）。
+		 		 所以你模态框组件zindex设置再大，也不会超过根节点的设置 -->
+    {% endblock %}
+    <!-- JavaScript - Placed at the end of the document so the pages load faster -->
+
+    <!-- jQuery -->
+    <script src="/static/js/jquery-1.11.0.min.js"></script>
+
+    <!-- Bootstrap core JavaScript -->
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- Bootstrap datetimepicker -->
+    <script src="/static/js/moment.min.js"></script>
+    <script src="/static/js/bootstrap-datetimepicker.min.js"></script>
+
+    <!-- Raphael -->
+    <script src="/static/js/raphael-min.js"></script>
+
+    <!-- Raphael & Chartjs -->
+    <script src="/static/js/Chart.min.js"></script>
+
+    <!-- Morris -->
+    <script src="/static/js/morris.min.js"></script>
+
+    <!-- Flot Chart -->
+    <script src="/static/js/flot/jquery.flot.js"></script>
+    <script src="/static/js/flot/jquery.flot.resize.js"></script>
+    <script src="/static/js/flot/jquery.flot.stack.js"></script>
+    <script src="/static/js/flot/jquery.flot.crosshair.js"></script>
+
+    <!-- Full Calendar -->
+    <script src="/static/js/fullcalendar.min.js"></script>
+
+    <!-- Zabuto Calendar -->
+    <script src="/static/js/zabuto_calendar.min.js"></script>
+
+    <!-- jQuery DataTables -->
+    <script src="/static/js/jquery.dataTables.min.js"></script>
+    <script src="/static/js/bootstrap-datatables.js"></script>
+
+    <!-- fancyBox -->
+    <script src="/static/js/jquery.fancybox.pack.js"></script>
+
+    <!-- miniNotification -->
+    <script src="/static/js/miniNotification.js"></script>
+
+    <!-- Aqua specific JavaScripts -->
+    <script src="/static/js/aqua.js"></script>
+
+    <!--Csrf-->
+    <script src="/static/js/csrf.js"></script>
+
+    <!-- Page specific JavaScripts -->
+    <script>
+        //防止点击其它地方时左侧下拉菜单会自动收缩
+        $(function () {          
+            $("body *:not(#dialog_supplier :button)").on('click', function (e) {
+                //alert(e.eventPhase)
+                //alert($(e.target).data('toggle'))
+                if($(this)[0].tagName == "DIV" && $(e.target).data('dismiss') != "modal" && $(e.target).data('toggle') == undefined/* && e.eventPhase != Event.BUBBLING_PHASE*/){
+                    //alert($(this).attr('class'))
+                    //alert($(e.target)[0].tagName)
+                    if($(e.target)[0].tagName != "SPAN"){
+                        e.stopPropagation();  //阻止事件冒泡，事件是可以冒泡的，为防止事件冒泡到DOM树上，不触发任何前辈元素上的事件处理函数，可以用 event.isPropagationStopped() 来确定stopPropagation是否被调用过了
+                    }
+                    if($(e.target).parent().data('toggle') == 'modal'){
+                        $($(e.target).parent().data('target')).modal();
+                        e.stopPropagation();
+                    }
+                }
+                else if($(e.target).data('toggle') != undefined){
+                    //alert($(this).attr('id'))
+                    //if($(this).attr('id') == "wrapper"){
+                    //    $('a[data-toggle="dropdown"]').trigger("dropdown")
+                    //}
+                    if($(e.target).data('toggle') == "tab"){
+                        $(e.target).tab('show');
+                        //$('.row').scrollTop(0);
+                        //alert($('.row').offset().top)
+                        //$('#content').animate({  
+                        //    scrollTop: $(".row").offset().top
+                        //});
+                        e.stopPropagation();
+                    }
+                    else if($(e.target).data('toggle') == 'modal'){
+                        $($(e.target).data('target')).modal();
+                        e.stopPropagation();
+                    }
+                }
+                else if($(e.target).data('dismiss') == "modal"){
+                        $(e.target).parent().parent().parent().parent().modal('hide');
+                        e.stopPropagation();
+                }
+            });
+        });
+        /*$('a[data-toggle="dropdown"]').on('dropdown', function(e) { //自定义事件
+            var url_array = document.location.pathname.split("/");
+            s1 = url_array[1];                       
+            s2 = url_array[2];                       
+            if (s1 == ''){                           
+                $('#index').addClass('active')       
+            } else {                                 
+                $("#"+s1).addClass('active open');   
+                $('#'+s1+' .'+s2).addClass('active');
+                console.log(s1)                      
+            }
+        });
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            var url_array = document.location.pathname.split("/");
+            s1 = url_array[1];
+            s2 = url_array[2];
+            if (s1 == ''){
+                $('#index').addClass('active')
+            } else {
+                $("#"+s1).addClass('active open');
+                $('#'+s1+' .'+s2).addClass('active');
+                console.log(s1)
+            }
+        });*/
+        //防止页面刷新左侧下拉菜单收缩
+        var url_array = document.location.pathname.split("/");
+        s1 = url_array[1];
+        s2 = url_array[2];
+		  //alert(s1)
+		  //alert(s2)
+        if (s1 == ''){
+            $('#index').addClass('active')
+        } else {
+            $("#"+s1).addClass('active open');
+            $('#'+s1+' .'+s2).addClass('active');
+            console.log(s1)
+        }
+    </script>
+    {% block js %}{% endblock %}
+  </body>
+</html>

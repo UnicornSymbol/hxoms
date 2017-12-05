@@ -1,0 +1,33 @@
+h1, .h1, h2, .h2, h3, .h3 {
+    margin-top: 10px;
+    margin-bottom: 7px;
+}
+.form-horizontal .form-group {
+    margin-right: 0px;
+    margin-left: 0px;
+}
+.form-horizontal .has-feedback .form-control-feedback {
+    top: 28px;
+    right: 0px;
+}
+.has-error .form-control-errorinfo {
+    color: #a94442;
+}
+.form-control-errorinfo {
+    position: absolute;
+    top: 28px;
+    right: 34px;
+    z-index: 2;
+    display: block;
+    height: 34px;
+    line-height: 34px;
+    text-align: center;
+}
+.has-error .control-label, .has-success .control-label {
+    color: #333;
+}
+.panel-default>.panel-heading {
+    color: #434a54;
+    background-color: #ffffff;
+    border-color: #e6e9ed;
+}
