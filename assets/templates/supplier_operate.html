@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block css %}
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script src="/static/plugins/xcConfirm/js/xcConfirm.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/static/plugins/xcConfirm/css/xcConfirm.css"/>
+<link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-12">
+  <div class="panel panel-default">
+     <div class="panel-heading">
+        <h3 class="panel-title">供应商更新</h3>
+     </div>
+     <div class="panel-body">
+        <form class="form-horizontal" role="form" id="form-update" method="post" action="">
+           {% csrf_token %}
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_name"><strong>名称</strong></label>
+              {{ form.name }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_website"><strong>网站</strong></label>
+              {{  form.website }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_business"><strong>业务联系人</strong></label>
+              {{ form.business }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_bus_phone"><strong>业务联系人电话</strong></label>
+              {{ form.bus_phone }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_technical"><strong>技术联系人</strong></label>
+              {{ form.technical }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_tec_phone"><strong>技术联系人电话</strong></label>
+              {{ form.tec_phone }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_tec_phone"><strong>合同</strong></label>
+              {{ form.contract }}
+              <span id="percent"><span>
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_email"><strong>邮箱</strong></label>
+              {{ form.email }}
+           </div>
+           <div class="form-group">
+              <label class="control-label no-padding-right" for="sup_comment"><strong>备注</strong></label>
+              {{ form.comment }}
+           </div>
+           <div>
+             <button type="button" class="btn btn-primary btn-sm" id="update-btn">更新</button>
+           </div>
+        </form>
+     </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/validators.js"></script>
+<script>
+$(document).ready(function() {
+    $("#form-update input").blur(function(){
+        //alert("test")
+        var parent = $(this).parent();
+        parent.find("#errorinfo").remove()
+        parent.find("#feedback").remove()
+        parent.removeClass("has-success")
+        parent.removeClass("has-error")
+        if($(this).is("#sup_name")){
+            //alert("test")
+            $.checkName(this.value,parent,"请输入供应商名称")
+        }
+        else if($(this).is("#sup_website")){
+            $.checkWebsite(this.value,parent)
+        }
+        else if($(this).is("#sup_bus_phone")){
+            $.checkPhone(this.value,parent)
+        }
+        else if($(this).is("#sup_tec_phone")){
+            $.checkPhone(this.value,parent)
+        }
+        else if($(this).is("#sup_email")){
+            $.checkEmail(this.value,parent)
+        }
+    });
+
+    jQuery.fn.checkSupForm=function(){
+        $("#form-update input:not(:hidden)").each(function () {
+            var $parent = $(this).parent();
+            //$parent.addClass("has-error has-feedback")
+            $parent.find("#errorinfo").remove()
+            $parent.find("#feedback").remove()
+            $parent.removeClass("has-success")
+            $parent.removeClass("has-error")
+            if($(this).is("#sup_name")){
+                //alert("test")
+                $.checkName(this.value,$parent,"请输入供应商名称")
+            }
+            else if($(this).is("#sup_website")){
+                $.checkWebsite(this.value,$parent)
+            }
+            else if($(this).is("#sup_bus_phone")){
+                $.checkPhone(this.value,$parent)
+            }
+            else if($(this).is("#sup_tec_phone")){
+                $.checkPhone(this.value,$parent)
+            }
+            else if($(this).is("#sup_email")){
+                $.checkEmail(this.value,$parent)
+            }
+        });
+    };
+
+    $.fn.serializeJson=function(){  
+        var serializeObj={};  
+        $(this.serializeArray()).each(function(){  
+            serializeObj[this.name]=this.value;  
+        });  
+        return serializeObj;  
+    };
+
+    $('#update-btn').click(function(){
+        //var jsonData = $('#form-update').serializeJson()
+        // formdata可以处理file对象
+        var formData = new FormData($('#form-update')[0]);
+        $('#form-update').checkSupForm();
+        if($("#errorinfo").length == 0){
+            //alert("不存在")
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+            });
+            $.ajax({
+                type:"POST",
+                url:window.location.href,
+                //data:jsonData,
+                //dataType:"json",
+                data:formData,
+                processData:false,// 不处理发送的数据，因为data值是Formdata对象，不需要对数据做处理;是否序列化data属性，默认true(注意：false时type必须是post)
+                contentType:false,// 不设置Content-type请求头,当有文件要上传时，此项是必须的，否则后台无法识别文件流的起始位置
+                //这里我们先拿到jQuery产生的 XMLHttpRequest对象，为其增加 progress 事件绑定，然后再返回交给ajax使用
+                xhr: function(){
+                    var xhr = $.ajaxSettings.xhr();
+                    if(xhr.upload) {
+                        //xhr.upload.onprogress = uploadProgress;
+                        xhr.upload.addEventListener("progress" , onProgress, false);
+                        return xhr;
+                    }
+                },
+                success: function(ret){
+                    if(ret["status"]=="更新成功"){
+                        var option = {
+                            onOk: function(){
+                                $(location).attr('href', "{% url 'supplier_list' %}");
+                            },
+                            onClose:function(){
+                                $(location).attr('href', "{% url 'supplier_list' %}");
+                            }
+                        }
+                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);
+                    }
+                    else{
+                        window.wxc.xcConfirm(ret["msg"], window.wxc.xcConfirm.typeEnum.error);
+                    }
+                }
+            })
+        }
+        else{
+            //alert("存在")
+        }
+    });
+});
+
+function onProgress(event) {
+    if(event.lengthComputable) {
+        var ele = document.getElementById('percent');
+        var percentComplete = Math.round((event.loaded) * 100 / event.total); 
+        ele.innerText = percentComplete + '%';
+    }
+}
+
+function del_sup(obj){
+    var url=$(obj).attr("href")
+    var option = {
+        onOk: function(){
+            $.ajax({
+                type:"DELETE",
+                url:url,
+                success: function(ret){
+                    if(ret["status"]=="删除成功"){
+                        window.location.reload();
+                    }
+                    else{
+                        window.wxc.xcConfirm(ret["msg"], window.wxc.xcConfirm.typeEnum.error);
+                    }
+                }
+            })
+        },
+    }
+    window.wxc.xcConfirm("删除后将不可恢复！确认删除？", window.wxc.xcConfirm.typeEnum.warning, option);
+};
+</script>
+{% endblock %}

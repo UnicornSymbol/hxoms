@@ -1,7 +1,7 @@
 #coding: utf-8
 
 from django import forms
-from assets.models import Idc, Server, Supplier, Service
+from assets.models import Idc, Server, Supplier, Service, Requisition
 
 class IdcForm(forms.ModelForm):
     class Meta:
@@ -40,7 +40,7 @@ class ServerForm(forms.ModelForm):
 class SupplierForm(forms.ModelForm):
     class Meta:
         model = Supplier
-        fields = ('name', 'website', 'contact', 'phone', 'email', 'comment')
+        fields = ('name', 'website', 'business', 'bus_phone', 'technical', 'tec_phone', 'contract', 'email', 'comment')
         widgets = {
             'name': forms.TextInput(
                 attrs={'class': 'form-control',
@@ -48,12 +48,21 @@ class SupplierForm(forms.ModelForm):
             'website': forms.TextInput(
                 attrs={'class': 'form-control',
                        'id': 'sup_website'}),
-            'contact': forms.TextInput(
+            'business': forms.TextInput(
                 attrs={'class': 'form-control',
-                       'id': 'sup_contact'}),
-            'phone': forms.TextInput(
+                       'id': 'sup_business'}),
+            'bus_phone': forms.TextInput(
                 attrs={'class': 'form-control',
-                       'id': 'sup_phone'}),
+                       'id': 'sup_bus_phone'}),
+            'technical': forms.TextInput(
+                attrs={'class': 'form-control',
+                       'id': 'sup_technical'}),
+            'tec_phone': forms.TextInput(
+                attrs={'class': 'form-control',
+                       'id': 'sup_tec_phone'}),
+            'contract': forms.FileInput(
+                attrs={'class': 'form-control',
+                       'id': 'sup_contract'}),
             'email': forms.EmailInput(
                 attrs={'class': 'form-control',
                        'id': 'sup_email'}),
@@ -67,7 +76,7 @@ class SupplierForm(forms.ModelForm):
 class ServiceForm(forms.ModelForm):
     class Meta:
         model = Service
-        fields = ('name', 'supplier', 'use', 'cost')
+        fields = ('name', 'supplier', 'use', 'backstage', 'cost')
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'supplier': forms.Select(attrs={'class': 'form-control'}),
@@ -75,6 +84,32 @@ class ServiceForm(forms.ModelForm):
                 attrs={'class': 'form-control',
                        'placeholder': u'请输入100字以内',
                        'rows': '5'}),
+            'backstage': forms.TextInput(attrs={'class': 'form-control'}),
             'cost': forms.TextInput(attrs={'class': 'form-control',
                                            'placeholder': u'单位(元/季度)'}),
+        }
+
+class RequisitionForm(forms.ModelForm):
+    class Meta:
+        model = Requisition
+        fields = ('payment', 'cost', 'unit', 'end_date', 'comment')
+        widgets = {
+            'payment': forms.Select(
+                attrs={'class': 'form-control',
+                       'id': 'id_payment'}),
+            'cost': forms.TextInput(
+                attrs={'class': 'form-control',
+                       'id': 'id_cost'}),
+            'unit': forms.Select(
+                attrs={'class': 'form-control',
+                       'id': 'id_unit'}),
+            'end_date': forms.DateInput(
+                attrs={'class': 'form-control',
+                       'id': 'id_end_date',
+                       'readonly': True}),
+            'comment': forms.Textarea(
+                attrs={'class': 'form-control',
+                       'id': 'id_comment',
+                       'placeholder': u'请输入100字以内',
+                       'rows': '5'}),
         }

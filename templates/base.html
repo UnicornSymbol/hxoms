@@ -48,7 +48,8 @@
     <!-- <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet"> -->
     <link href="http://brick.a.ssl.fastly.net/Open+Sans:300,400,600,700" rel="stylesheet">
     <link href="/static/css/ionicons.min.css" rel="stylesheet">
-    <link href="/static/css/font-awesome.min.css" rel="stylesheet">
+    <!--link href="/static/css/font-awesome.min.css" rel="stylesheet"-->
+    <link href="/static/plugins/Font-Awesome/css/font-awesome.min.css" rel="stylesheet">
 
     {% block css %}{% endblock %}
     <!--[if lt IE 9]>
@@ -193,14 +194,18 @@
         //防止页面刷新左侧下拉菜单收缩
         var url_array = document.location.pathname.split("/");
         s1 = url_array[1];
-        s2 = url_array[2];
+        s2 = url_array[2].split("_")[0];
 		  //alert(s1)
 		  //alert(s2)
         if (s1 == ''){
             $('#index').addClass('active')
+        } else if (s2 == "requisition") {
+            $("#cost").addClass('active open');
+            $('#cost'+' a[class^='+s2+']').addClass('active');
         } else {
             $("#"+s1).addClass('active open');
-            $('#'+s1+' .'+s2).addClass('active');
+            //$('#'+s1+' .'+s2).addClass('active');
+            $('#'+s1+' a[class^='+s2+']').addClass('active');
             console.log(s1)
         }
     </script>

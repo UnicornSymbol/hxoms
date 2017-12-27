@@ -33,14 +33,15 @@
         <ul class="dropdown-menu">
           <li><a class="idc_list" href="{% url 'idc_list' %}" title="Idc">数据中心</a></li>
           <li><a class="server_list" href="{% url 'server_list' %}" title="Server">服务器</a></li>
+          <li><a class="supplier_list" href="{% url 'supplier_list' %}" title="Supplier">供应商</a></li>
           <li><a class="service_list" href="{% url 'service_list' %}" title="Service">互联网服务</a></li>
         </ul>
       </li>
 
-      <li class="dropdown">
+      <li class="dropdown" id="cost">
         <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-cogs info"></i>费用管理<b class="caret"></b></a>
         <ul class="dropdown-menu">
-          <li><a href="#" title="Requisition">申请单</a></li>
+          <li><a class="requisition_lsit" href="{% url 'requisition_list' %}" title="Requisition">申请单</a></li>
         </ul>
       </li>
 

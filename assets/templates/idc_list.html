@@ -15,14 +15,14 @@ tr>th, tr>td {
 {% block content %}
 <div class="col-md-12">
   <ul class="nav nav-tabs">
-    <li><h1 class="section-title">机房管理</h1></li>
-    <li class="pull-right">
+    <li class="active">
+      <a href="#idc-list" data-toggle="tab" onclick="return false;">机房列表</a>
+    </li>
+    <li>
 	   <!--return false;防止切换时自动滑动到底部-->
       <a href="#idc-add" data-toggle="tab" onclick="return false;">机房添加</a>
     </li>
-    <li class="active pull-right">
-      <a href="#idc-list" data-toggle="tab" onclick="return false;">机房列表</a>
-    </li>
+    <li class="pull-right"><h1 class="section-title">机房管理</h1></li>
   </ul>
 </div>
 

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filter %}
 
 {% block css %}
 <script src="/static/js/jquery-1.11.0.min.js"></script>
@@ -23,16 +24,16 @@ tr>th, tr>td {
 {% block content %}
 <div class="col-md-12">
   <ul class="nav nav-tabs" id="navtab">
-    <li><h1 class="section-title">服务管理</h1></li>
-    <li class="pull-right">
-      <a href="#service-add" data-toggle="tab" onclick="return false;">服务添加</a>
-    </li>
-    <li class="active pull-right">
+    <li class="active">
       <a href="#service-list" data-toggle="tab" onclick="return false;">服务列表</a>
     </li>
-    <li class="pull-right">
-      <a href="#supplier-list" data-toggle="tab" onclick="return false;">供应商列表</a>
+    <li>
+      <a href="#service-add" data-toggle="tab" onclick="return false;">服务添加</a>
     </li>
+    <!--li class="pull-right">
+      <a href="#supplier-list" data-toggle="tab" onclick="return false;">供应商列表</a>
+    </li-->
+    <li class="pull-right"><h1 class="section-title">服务管理</h1></li>
   </ul>
 </div>
 
@@ -44,13 +45,15 @@ tr>th, tr>td {
     			<h3 class="panel-title">服务列表</h3>
     		</div>
   			<div class="panel-body">
- 				<table cellpadding="0" cellspacing="0" border="0" id="ser_tab" class="table table-striped table-bordered bs_normal">
+            <!--style设置每个td长串英文字母自动换行-->
+ 				<table cellpadding="0" cellspacing="0" border="0" id="ser_tab" class="table table-striped table-bordered bs_normal" style="word-wrap:break-word;word-break:break-all">
   			    <thead>
   			      <tr>
   			        <th>服务名称</th>
   			        <th>服务类型</th>
   			        <th>供应商</th>
   			        <th>作用</th>
+  			        <th>后台</th>
   			        <th>购买日期</th>
   			        <th>到期日期</th>
   			        <th>购买费用</th>
@@ -64,9 +67,12 @@ tr>th, tr>td {
   			          <td>{{ service.name }}</td>
   			          <td>{{ service.type | default_if_none:"" }}</td>
                    <td>{{ service.supplier | default_if_none:"" }}</td>
-  			          <td class="center" style="width:30%">{{ service.use | default_if_none:"" }}</td>
+  			          <td class="center" style="width:25%">{{ service.use | default_if_none:"" }}</td>
+                   <td style="width:20%">
+                     <a href={{ service.backstage }} target="_blank">{{ service.backstage | default_if_none:"" }}</a>
+                   </td>
   			          <td class="center">{{ service.buy_date | date:"Y/m/d" }}</td>
-  			          <td class="center">{{ service.end_date | date:"Y/m/d" }}</td>
+  			          <td class="center">{{ service.end_date | date:"Y/m/d" |end_date }}</td>
                    {% if service.cost %}
                      <td>{{ service.cost }}元/季度</td>
                    {% else %}
@@ -107,6 +113,10 @@ tr>th, tr>td {
                {{ form_ser.name }}
              </div>
              <div class="form-group">
+               <label class="control-label">后台</label>
+               {{ form_ser.backstage }}
+             </div>
+             <div class="form-group">
                <label class="control-label">服务类型(请选择或自定义输入一个类型)</label>
                <!--<select class="form-control" id="id_type" name="type">
                  {% for type in types %}
@@ -131,12 +141,12 @@ tr>th, tr>td {
              </div>
              <div class="form-group">
                <label class="control-label">供应商</label>
-               <div class="input-group">
+               <!--div class="input-group"-->
                  {{ form_ser.supplier }}
-                 <span class="input-group-btn">
+                 <!--span class="input-group-btn">
                    <button type="button" class="btn" id="sup_add" data-toggle="modal" data-target="#dialog_supplier"><span class="glyphicon glyphicon-plus"></span></button>
-                 </span>
-               </div>
+                 </span-->
+               <!--/div-->
              </div>
              <div class="form-group">
                <label class="control-label">作用</label>
@@ -154,7 +164,7 @@ tr>th, tr>td {
       </div>
     </div>
   </div>
-  <div class="tab-pane" id="supplier-list">
+  <!--div class="tab-pane" id="supplier-list">
     <div class="col-lg-12">
       <div class="panel panel-default">
          <div class="panel-heading">
@@ -193,12 +203,12 @@ tr>th, tr>td {
          </div>
       </div>  <!--panel end-->
     </div>
-  </div>  <!--pane end-->
+  </div-->  <!--pane end-->
 </div>  <!--content end-->
 {% endblock %}
 
 {% block modal %}
-<div class="modal fade" id="dialog_supplier" tabindex="-1" role="dialog" aria-labelledby="supplier_title" aria-hidden="true">
+<!--div class="modal fade" id="dialog_supplier" tabindex="-1" role="dialog" aria-labelledby="supplier_title" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
 			<div class="modal-header">
@@ -256,7 +266,7 @@ tr>th, tr>td {
 			</div>
 		</div><!-- /.modal-content -->
 	</div><!-- /.modal -->
-</div>
+</div-->
 {% endblock %}
 
 {% block js %}
@@ -292,7 +302,7 @@ $(document).ready(function() {
         }
     });
 
-    $("#supplier_form input").blur(function(){
+    /*$("#supplier_form input").blur(function(){
         //alert("test")
         var parent = $(this).parent();
         parent.find("#errorinfo").remove()
@@ -436,7 +446,7 @@ $(document).ready(function() {
         else{
             //alert("存在")
         }
-    });
+    });*/
 
     $("#service_form input").blur(function(){
         var parent = $(this).parent();
@@ -467,6 +477,7 @@ $(document).ready(function() {
         var type = $("#id_type").val()
         var supplier = $("#id_supplier").val()
         var use = $("#id_use").val()
+        var backstage = $("#id_backstage").val()
         var cost = $("#id_cost").val()
         $('#supplier_form').checkSerForm();
         if($("#errorinfo").length == 0 && $.trim(type) != "" && supplier.length != 0){
@@ -477,7 +488,7 @@ $(document).ready(function() {
             $.ajax({
                 type:"POST",
                 url:"{% url 'service_list' %}",
-                data:{"name": name, "type": type, "supplier": supplier, "use": use, "cost": cost},
+                data:{"name": name, "type": type, "supplier": supplier, "use": use, "backstage": backstage, "cost": cost},
                 dataType:"json",
                 success: function(ret){
                     if(ret["status"]=="添加成功"){
@@ -500,7 +511,7 @@ $(document).ready(function() {
                         window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);
                     }
                     else{
-                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.error);
+                        window.wxc.xcConfirm(ret["msg"], window.wxc.xcConfirm.typeEnum.error);
                     }
                 }
             })
@@ -566,7 +577,7 @@ $(document).ready(function() {
         return false;
     })
 });
-function del_sup(obj){
+/*function del_sup(obj){
     var url=$(obj).attr("href")
     var option = {
         onOk: function(){
@@ -585,7 +596,7 @@ function del_sup(obj){
         },
     }
     window.wxc.xcConfirm("删除后将不可恢复！确认删除？", window.wxc.xcConfirm.typeEnum.warning, option);
-};
+};*/
 
 function del_ser(obj){
     var url=$(obj).attr("href")

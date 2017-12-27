@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+{% load static %}
+{% load custom_filter %}
+
+{% block css %}
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script src="/static/plugins/xcConfirm/js/xcConfirm.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/static/plugins/xcConfirm/css/xcConfirm.css"/>
+<link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
+<link rel="stylesheet" type="text/css" href="{% static 'plugins/bootstrap-datetimepicker/css/bootstrap-datetimepicker.css' %}">
+<style>
+tr>th, tr>td {
+    font-size: 12px;
+}
+.input-group-addon {
+    background-color: #eeeeee;
+    border-color: #96a0ad;
+    color: #333;
+}
+.dropdown-menu {
+    border: 1px solid rgba(0,0,0,.15);
+    background-color: #fff;
+}
+.form-control.disabled, .form-control[disabled] {
+    border-color: #aab2bd;
+    background-color: #e6e9ed;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-lg-12">
+  <div class="panel panel-default">
+     <div class="panel-heading">
+       <h3 class="panel-title">申请单更新</h3>
+     </div>
+     <div class="panel-body">
+       <form class="form-horizontal form-border" id="form-update" method="post" action="">
+         {% csrf_token %}
+         <div class="form-group">
+           <label class="control-label">资产</label>
+           <select class="form-control" id="id_asset" name="asset" disabled>
+             <option value={{ ser }}>{{ ser }}</option>
+           </select>
+           {{ req.asset | asset_info:True }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">支付方式</label>
+           {{ form.payment }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">银行账号</label>
+           <input class="form-control" id="id_bank" maxlength="64" name="bank" type="text" value="{{ bank }}">
+         </div>
+         <div class="form-group">
+           <label class="control-label">开户银行名称</label>
+           <input class="form-control" id="id_bank_name" maxlength="64" name="bank_name" type="text" value="{{ bank_name }}">
+         </div>
+         <div class="form-group">
+           <label class="control-label">支付宝账号</label>
+           <input class="form-control" id="id_alipay" maxlength="64" name="alipay" type="text" value="{{ alipay }}">
+         </div>
+         <div class="form-group">
+           <label class="control-label">金额单位</label>
+           {{ form.unit }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">申请单金额(精确至小数点后两位小数)</label>
+           {{ form.cost }}
+         </div>
+         <div class="form-group">
+           <label class="control-label">截止日期</label>
+           <div class="input-group date form_date">
+             {{ form.end_date }}
+             <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+             <span class="input-group-addon"> 
+               <span class="glyphicon glyphicon-calendar"></span> 
+             </span>
+           </div>
+         </div>
+         <div class="form-group">
+           <label class="control-label">备注</label>
+           {{ form.comment }}
+         </div>
+         <div>
+           <button type="button" class="btn btn-primary btn-sm" id="update-btn">更新</button>
+         </div>
+       </form>
+     </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/validators.js"></script>
+<script src="{% static 'plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js' %}"></script>
+<script>
+$(document).ready(function() {
+    $('.form_date').datetimepicker({
+        format: 'yyyy-mm-dd',
+        minView: 'month', //选择日期后，不会再跳转去选择时分秒
+        weekStart: 0,
+        todayBtn:  true,
+        keyboardNavigation: false,
+        forceParse: false,
+        autoclose: true,
+        pickerPosition: "top-right",
+    });
+
+    $("#form-update input").blur(function(){
+        //alert("test")
+        var parent = $(this).parent();
+        parent.find("#errorinfo").remove()
+        parent.find("#feedback").remove()
+        parent.removeClass("has-success")
+        parent.removeClass("has-error")
+        if($(this).is("#id_bank")){
+            $.checkBank(this.value,parent)
+        }
+        else if($(this).is("#id_cost")){
+            $.checkCost(this.value,parent)
+        }
+    });
+
+    jQuery.fn.checkForm=function(){
+        $("#form-update input:not(:hidden)").each(function () {
+            var $parent = $(this).parent();
+            //$parent.addClass("has-error has-feedback")
+            $parent.find("#errorinfo").remove()
+            $parent.find("#feedback").remove()
+            $parent.removeClass("has-success")
+            $parent.removeClass("has-error")
+            if($(this).is("#id_bank")){
+                $.checkBank(this.value,$parent)
+            }
+            else if($(this).is("#id_cost")){
+                $.checkCost(this.value,$parent)
+            }
+        });
+    };
+    $.fn.serializeJson=function(){  
+        var serializeObj={};  
+        $(this.serializeArray()).each(function(){  
+            serializeObj[this.name]=this.value;  
+        });  
+        return serializeObj;  
+    };
+    $('#update-btn').click(function(){
+        var jsonData = $('#form-update').serializeJson()
+        $('#form-update').checkForm();
+        if($("#errorinfo").length == 0){
+            //alert("不存在")
+            $.ajaxSetup({
+                data: {csrfmiddlewaretoken: '{{ csrf_token }}'},
+            });
+            $.ajax({
+                type:"POST",
+                url:window.location.href,
+                data:jsonData,
+                dataType:"json",
+                success: function(ret){
+                    if(ret["status"]=="更新成功"){
+                        var option = {
+                            onOk: function(){
+                              $(location).attr('href', "{% url 'requisition_list' %}");
+                            },
+                            onClose:function(){
+                              $(location).attr('href', "{% url 'requisition_list' %}"); 
+                            }
+                        }
+                        window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);
+                    }
+                    else{
+                        window.wxc.xcConfirm(ret["msg"], window.wxc.xcConfirm.typeEnum.error);
+                    }
+                }
+            })
+        }
+        else{
+            //alert("存在")
+        }
+    });
+});
+
+$("#id_payment").change(function(){
+	pay_method_change($(this));
+});
+
+function pay_method_change(obj){
+	if(obj.val() == 1){
+		show_bank();
+	}else{
+		show_alipay();
+	}
+};
+
+function show_alipay(){
+	$("#id_alipay").attr({"disabled": false});
+	$("#id_bank").parent("div").hide();
+	$("#id_bank_name").parent("div").hide();
+	$("#id_alipay").parent("div").show();
+	$("#id_bank").attr({"disabled": true});
+	$("#id_bank_name").attr({"disabled": true});
+   $("#id_bank").parent().find("#errorinfo").remove()
+   $("#id_bank").parent().find("#feedback").remove()
+};
+
+function show_bank(){
+	$("#id_bank").attr({"disabled": false});
+	$("#id_bank_name").attr({"disabled": false});
+	$("#id_alipay").parent("div").hide();
+	$("#id_bank").parent("div").show();
+	$("#id_bank_name").parent("div").show();
+	$("#id_alipay").attr({"disabled": true});
+};
+
+function init_payinfo(){
+   if($("#id_payment").val() == 1){
+      show_bank();
+   }else{
+      show_alipay();
+   }
+};
+init_payinfo();
+</script>
+{% endblock %}

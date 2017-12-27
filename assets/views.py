@@ -1,15 +1,17 @@
 #coding: utf-8
 
+import os
 import sys  
 reload(sys)  
 sys.setdefaultencoding('utf8')
 import datetime
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest
+from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest,StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
-from assets.forms import IdcForm,ServerForm,SupplierForm,ServiceForm
-from assets.models import Idc,Server,Supplier,Type,Service
+from django.core.exceptions import ObjectDoesNotExist
+from assets.forms import IdcForm,ServerForm,SupplierForm,ServiceForm,RequisitionForm
+from assets.models import Idc,Server,Supplier,Type,Service,Requisition
 
 # Create your views here.
 @login_required
@@ -104,29 +106,82 @@ def status_change(request,sid,status):
             return JsonResponse({"status": u"更改失败", "msg": u"错误的状态值"})
 
 @login_required
+def contract_download(request,id):
+    sup = get_object_or_404(Supplier, pk=id)
+    filename=sup.contract.path    #要下载的文件路径  
+    the_file_name=os.path.basename(filename)             #显示在弹出对话框中的默认的下载文件名      
+    def file_iterator(file_name, chunk_size=512):
+        with open(file_name) as f:
+            while True:
+                c = f.read(chunk_size)
+                if c:
+                    yield c
+                else:
+                    break
+    response = StreamingHttpResponse(file_iterator(filename))
+    # 不加这两行文件流通常会以乱码形式显示到浏览器中，而非下载到硬盘上
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = 'attachment;filename="{0}"'.format(the_file_name)
+    return response
+
+@login_required
+def supplier_list(request):
+    if request.method == 'POST':
+        #print(request.POST)
+        #print(request.FILES)
+        """contract = request.FILES.get('contract',None)
+        contract_path = 'media/contract/{}'.format(request.POST.get('name'))
+        if not os.path.exists(contract_path):
+            os.makedirs(contract_path)
+        if contract:
+            with open(os.path.join(contract_path,contract.name),'wb+') as destination:  
+                for chunk in contract.chunks():  
+                    destination.write(chunk)"""
+        supplier = Supplier()
+        form = SupplierForm(request.POST, request.FILES, instance=supplier)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({"status": u"添加成功"})
+        else:
+            return JsonResponse({"status": u"添加失败", "msg": u"供应商已存在"})
+    suppliers = Supplier.objects.all()
+    form_sup = SupplierForm()
+    return render(request, 'supplier_list.html', locals())
+
+@login_required
 def supplier_operate(request, id=None):
-    if id:
-        sup = get_object_or_404(Supplier, id=id)
-        status = u"更新成功"
-    else:
-        sup = Supplier()
-        status = u"添加成功"
+    sup = get_object_or_404(Supplier, id=id)
+    file_path = None
     if request.method == 'DELETE':
         try:
+            if sup.contract:
+                file_path = sup.contract.path
             sup.delete()
         except ProtectedError:
             return JsonResponse({"status": u"删除失败", "msg": u"请确保没有服务依赖于它"})
+        else:
+            if file_path:
+                os.remove(file_path)
+                os.rmdir(os.path.dirname(file_path))
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
-        form = SupplierForm(request.POST, instance=sup)
+        if request.FILES.get('contract'):
+            if sup.contract:
+                file_path = sup.contract.path
+            if file_path:
+                os.remove(file_path)
+                os.rmdir(os.path.dirname(file_path))
+        form = SupplierForm(request.POST, request.FILES, instance=sup)
         if form.is_valid():
             form.save()
             #print sup.id,sup.name
-            return JsonResponse({"status": status, "id": sup.id})
+            return JsonResponse({"status": u"更新成功", "id": sup.id})
         else:
             #print(form.cleaned_data)
-            return JsonResponse({"status": u"添加失败", "msg": u"供应商已存在"})
-    return HttpResponseBadRequest("Bad Request")
+            return JsonResponse({"status": u"更新失败", "msg": u"供应商已存在"})
+    form = SupplierForm(instance=sup)
+    return render(request, 'supplier_operate.html', locals())
+    #return HttpResponseBadRequest("Bad Request")
 
 @login_required
 def service_list(request):
@@ -142,12 +197,12 @@ def service_list(request):
             inst.save()
             return JsonResponse({"status": u"添加成功"})
         else:
-            return JsonResponse({"status": u"表单错误"})
+            return JsonResponse({"status": u"添加失败", "msg": u"服务名称已存在"})
     types = Type.objects.all()
-    suppliers = Supplier.objects.all()
+    #suppliers = Supplier.objects.all()
     services = Service.objects.all()
     form_ser = ServiceForm()
-    form_sup = SupplierForm()
+    #form_sup = SupplierForm()
     return render(request, 'service_list.html', locals())
 
 @login_required
@@ -172,7 +227,97 @@ def service_operate(request,id):
             inst.save()
             return JsonResponse({"status": u"更新成功"})
         else:
-            return JsonResponse({"status": u"更新失败", "msg": u"表单错误"})
+            return JsonResponse({"status": u"更新失败", "msg": u"服务名称已存在"})
     types = Type.objects.all()
     form = ServiceForm(instance=service)
     return render(request, 'service_operate.html', locals())
+
+@login_required
+def requisition_list(request):
+    if request.method == 'POST':
+        #print(request.POST)
+        asset = request.POST.get('asset')
+        payment = request.POST.get('payment')
+        alipay = request.POST.get('alipay', None)
+        bank = request.POST.get('bank', "")
+        bank_name = request.POST.get('bank_name', "")
+        requisition = Requisition()
+        form = RequisitionForm(request.POST, instance=requisition)
+        if form.is_valid():
+            inst = form.save(commit=False)
+            if payment == '1':
+                inst.info = "\n".join([bank, bank_name])
+            else:
+                inst.info = alipay
+            inst.asset = asset
+            inst.save()
+            return JsonResponse({"status": u"添加成功"})
+        else:
+            return JsonResponse({"status": u"添加失败", "msg": u"表单错误"})
+    servers = [s.ip for s in Server.objects.filter(status=1) if not Requisition.objects.filter(asset=s.ip)]
+    services = [s.name for s in Service.objects.filter(status=1) if not Requisition.objects.filter(asset=s.name)]
+    requisitions = Requisition.objects.all()
+    form = RequisitionForm()
+    return render(request, 'requisition_list.html', locals())
+
+def requisition_operate(request,id):
+    req = get_object_or_404(Requisition, pk=id)
+    try:
+        ser = Server.objects.get(ip=req.asset)
+    except ObjectDoesNotExist,e:
+        ser = Service.objects.get(name=req.asset)
+    if req.payment == 1:
+        bank,bank_name = req.info.split("\n")
+    else:
+        alipay = req.info
+    if request.method == 'DELETE':
+        if ser.status == 2:
+            req.delete()
+            return JsonResponse({"status": u"删除成功"})
+        else:
+            return JsonResponse({"status": u"删除失败", "msg":"请确保资产已经停用"})
+    if request.method == 'POST':
+        payment = request.POST.get('payment')
+        alipay = request.POST.get('alipay', None)
+        bank = request.POST.get('bank', "")
+        bank_name = request.POST.get('bank_name', "")
+        requisition = Requisition()
+        form = RequisitionForm(request.POST, instance=req)
+        if form.is_valid():
+            inst = form.save(commit=False)
+            if payment == '1':
+                inst.info = "\n".join([bank, bank_name])
+            else:
+                inst.info = alipay
+            inst.save()
+            return JsonResponse({"status": u"更新成功"})
+        else:
+            return JsonResponse({"status": u"更新失败", "msg": u"表单错误"})
+    form = RequisitionForm(instance=req)
+    return render(request, 'requisition_operate.html', locals())
+
+def req_approve(request,id,result):
+    req = get_object_or_404(Requisition, pk=id)
+    if result in ["yes","no"]:
+        if result == "yes":
+            req.approve_status = 2
+        else:
+            req.approve_status = 3
+        req.save()
+        return JsonResponse({"status": u"更改成功"})
+    else:
+        return JsonResponse({"status": u"更改失败", "msg": u"错误的审核结果"})
+
+def pay_confirm(request,id):
+    req = get_object_or_404(Requisition, pk=id)
+    if req.approve_status != 2:
+        return JsonResponse({"status": u"操作失败", "msg": u"申请单只有通过审核才能确认付款！"})
+    try:
+        ser = Server.objects.get(ip=req.asset)
+    except ObjectDoesNotExist:
+        ser = Service.objects.get(name=req.asset)
+    req.payment_status = 2
+    ser.end_date = req.end_date
+    req.save()
+    ser.save()
+    return JsonResponse({"status": u"操作成功"})

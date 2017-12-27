@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load custom_filter %}
 
 {% block css %}
 <script src="/static/js/jquery-1.11.0.min.js"></script>
@@ -15,13 +16,13 @@ tr>th, tr>td {
 {% block content %}
 <div class="col-md-12">
   <ul class="nav nav-tabs">
-    <li><h1 class="section-title">服务器管理</h1></li>
-    <li class="pull-right">
-      <a href="#server-add" data-toggle="tab" onclick="return false;">服务器添加</a>
-    </li>
-    <li class="active pull-right">
+    <li class="active">
       <a href="#server-list" data-toggle="tab" onclick="return false;">服务器列表</a>
     </li>
+    <li>
+      <a href="#server-add" data-toggle="tab" onclick="return false;">服务器添加</a>
+    </li>
+    <li class="pull-right"><h1 class="section-title">服务器管理</h1></li>
   </ul>
 </div>
 
@@ -57,7 +58,7 @@ tr>th, tr>td {
   			          <td>{{ server.position | default_if_none:"" }}</td>
   			          <td class="center" style="width:30%">{{ server.use | default_if_none:"" }}</td>
   			          <td class="center">{{ server.buy_date | date:"Y/m/d" }}</td>
-  			          <td class="center">{{ server.end_date | date:"Y/m/d" }}</td>
+  			          <td class="center">{{ server.end_date | date:"Y/m/d" | end_date }}</td>
                    {% if server.cost %}
                      <td>{{ server.cost }}元/季度</td> 
                    {% else %}
@@ -74,7 +75,7 @@ tr>th, tr>td {
                    </td> 
                    <td>
                      <a href="{% url 'server_operate' id=server.id %}" title="编辑" title="编辑"><i class="glyphicon glyphicon-edit"></i></a>
-                     <a href="{% url 'server_operate' id=server.id %}" " style="color:red" title="删除" onclick="del(this);return false"><i class="glyphicon glyphicon-trash"></i></a>
+                     <a href="{% url 'server_operate' id=server.id %}" style="color:red" title="删除" onclick="del(this);return false"><i class="glyphicon glyphicon-trash"></i></a>
                    </td> 
   			        </tr>
                {% endfor %}

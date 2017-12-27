@@ -64,4 +64,30 @@ $(function(){
             parent.append("<span id='feedback' class='glyphicon glyphicon-ok form-control-feedback'></span>")
         }                       
     };
+
+    $.checkBank=function(value,parent){
+        var reg =  /^(\d{16,19})$/
+        if($.trim(value) == "" || ($.trim(value) != "" && !reg.test($.trim(value)))){
+            parent.addClass("has-error has-feedback")
+            parent.append("<span id='errorinfo' class='form-control-errorinfo'>银行卡号由16至19位数字组成</span>")
+            parent.append("<span id='feedback' class='glyphicon glyphicon-remove form-control-feedback'></span>")
+        }
+        else{
+            parent.addClass("has-success has-feedback")
+            parent.append("<span id='feedback' class='glyphicon glyphicon-ok form-control-feedback'></span>")
+        }                       
+    };
+
+    $.checkCost=function(value,parent){
+        var reg =  /^[0-9]+(\.[0-9]+)?$/
+        if($.trim(value) == "" || ($.trim(value) != "" && !reg.test($.trim(value)))){
+            parent.addClass("has-error has-feedback")
+            parent.append("<span id='errorinfo' class='form-control-errorinfo'>请输入正确的金额</span>")
+            parent.append("<span id='feedback' class='glyphicon glyphicon-remove form-control-feedback'></span>")
+        }
+        else{
+            parent.addClass("has-success has-feedback")
+            parent.append("<span id='feedback' class='glyphicon glyphicon-ok form-control-feedback'></span>")
+        }                       
+    };
 });

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'account',
     'assets',
     'rest_framework',
+    'django_crontab',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -115,7 +116,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+#TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
@@ -133,3 +135,16 @@ STATICFILES_DIRS = (
 )
 
 LOGIN_URL = '/account/login/'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = 'media'
+
+# session config
+SESSION_COOKIE_AGE = 60*60*3
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_SAVE_EVERY_REQUEST = True
+
+# crontab
+CRONJOBS = [
+    ('0 0 * * *', 'django.core.management.call_command', ['cron'], {}, '>> /var/django-crontab.log'),
+]
