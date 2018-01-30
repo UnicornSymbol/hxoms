@@ -1,17 +1,19 @@
 #coding: utf-8
 
 import os
+import json
 import sys  
 reload(sys)  
 sys.setdefaultencoding('utf8')
 import datetime
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest,StreamingHttpResponse
+from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest,StreamingHttpResponse,Http404
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
 from django.core.exceptions import ObjectDoesNotExist
 from assets.forms import IdcForm,ServerForm,SupplierForm,ServiceForm,RequisitionForm
-from assets.models import Idc,Server,Supplier,Type,Service,Requisition
+from assets.models import Idc,Server,ServerInfo,Supplier,Type,Service,Requisition
+from assets.tasks import *
 
 # Create your views here.
 @login_required
@@ -66,7 +68,18 @@ def server_list(request):
 @login_required
 def server_operate(request,id):
     server = get_object_or_404(Server, pk=id)
+    refresh = request.GET.get('refresh',"")
+    if refresh:
+        refresh_alive(server)
+        return JsonResponse({"status": u"刷新成功", "alive": server.alive})
     if request.method == 'DELETE':
+        try:
+            server.serverinfo.delete()
+        except ObjectDoesNotExist:
+            pass
+        except ProtectedError:
+            return JsonResponse({"status": u"删除失败", "msg": u"请确保没有虚拟机依赖于{}".format(server.ip)})
+        delete_key.delay(server.node_name)
         server.delete()
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
@@ -88,6 +101,44 @@ def server_operate(request,id):
     return render(request, 'server_operate.html', locals())
 
 @login_required
+def server_detail(request,id):
+    server = Server.objects.get(pk=id)
+    try:
+        serverinfo = server.serverinfo
+    except ObjectDoesNotExist:
+        serverinfo = ServerInfo()
+    return render(request, 'server_detail.html', locals())
+
+@login_required
+def update_serverinfo(request):
+    if request.method == 'GET':
+        ip = request.GET.get('ip', "")
+        flush = request.GET.get('flush', "")
+        get_server = request.GET.get('get_server', "")
+        hosts = [i['ip'] for i in Server.objects.filter(status=1).exclude(ip=ip).order_by('ip').values('ip')]
+        if get_server and ip:
+            return HttpResponse(json.dumps(hosts))
+        if flush and ip:
+            ser = Server.objects.get(ip=ip)
+            get_server_info(ser)
+            return JsonResponse({"status": u"更新成功"})
+    if request.method == 'POST':
+        ip = request.POST.get('ip')
+        value = request.POST.get('value')
+        hosts = [i['ip'] for i in Server.objects.filter(status=1).exclude(ip=ip).order_by('ip').values('ip')]
+        ser = Server.objects.get(ip=ip)
+        try:
+            serverinfo = ser.serverinfo  #本机info
+            vm = hosts[int(value)]
+            #print(vm)
+            serverinfo.vm = ServerInfo.objects.get(ip=Server.objects.get(ip=vm))  #宿主机info
+            serverinfo.save()
+            return HttpResponse(vm)
+        except ObjectDoesNotExist:
+            return HttpResponse(u"请先获取本机或宿主机服务器信息...")
+    raise Http404
+
+@login_required
 def status_change(request,sid,status):
     #print status,type(status)
     asset_type = request.GET.get('asset_type')
@@ -99,6 +150,16 @@ def status_change(request,sid,status):
         else:
             return JsonResponse({"status": u"更改失败", "msg": u"错误的资产类型"})
         if status in ["1","2"]:
+            if asset_type == "server" and status == "2":
+                try:
+                    ser.serverinfo.delete()
+                except ObjectDoesNotExist:
+                    pass
+                except ProtectedError:
+                    return JsonResponse({"status": u"更改失败", "msg": u"请确保没有虚拟机依赖于{}".format(ser.ip)})
+                delete_key.delay(ser.node_name)
+                ser.node_name = ""
+                ser.alive = False
             ser.status = status
             ser.save()
             return JsonResponse({"status": u"更改成功"})
@@ -234,6 +295,7 @@ def service_operate(request,id):
 
 @login_required
 def requisition_list(request):
+    #print(request.COOKIES)
     if request.method == 'POST':
         #print(request.POST)
         asset = request.POST.get('asset')
@@ -260,7 +322,7 @@ def requisition_list(request):
     form = RequisitionForm()
     return render(request, 'requisition_list.html', locals())
 
-def requisition_operate(request,id):
+def requisition_operate(request,id,renew=None):
     req = get_object_or_404(Requisition, pk=id)
     try:
         ser = Server.objects.get(ip=req.asset)
@@ -281,7 +343,9 @@ def requisition_operate(request,id):
         alipay = request.POST.get('alipay', None)
         bank = request.POST.get('bank', "")
         bank_name = request.POST.get('bank_name', "")
-        requisition = Requisition()
+        if renew:
+            req_old = req
+            req = Requisition()
         form = RequisitionForm(request.POST, instance=req)
         if form.is_valid():
             inst = form.save(commit=False)
@@ -289,12 +353,29 @@ def requisition_operate(request,id):
                 inst.info = "\n".join([bank, bank_name])
             else:
                 inst.info = alipay
+            if renew:
+                inst.asset = req_old.asset
+                req_old.payment_status = 4
+                req_old.save()
             inst.save()
-            return JsonResponse({"status": u"更新成功"})
+            return JsonResponse({"status": u"操作成功"})
         else:
-            return JsonResponse({"status": u"更新失败", "msg": u"表单错误"})
+            return JsonResponse({"status": u"操作失败", "msg": u"表单错误"})
     form = RequisitionForm(instance=req)
     return render(request, 'requisition_operate.html', locals())
+
+@login_required
+def requisition_renew_list(request):
+    renews = []
+    requisitions = Requisition.objects.filter(payment_status=3)
+    for i in requisitions:
+        try:
+            ser = Server.objects.get(ip=i.asset)
+        except ObjectDoesNotExist,e:
+            ser = Service.objects.get(name=i.asset)
+        if ser.status == 1:
+            renews.append(i)
+    return render(request, 'requisition_renew_list.html', {"renews": renews})
 
 def req_approve(request,id,result):
     req = get_object_or_404(Requisition, pk=id)

@@ -109,7 +109,7 @@
     <script src="/static/js/zabuto_calendar.min.js"></script>
 
     <!-- jQuery DataTables -->
-    <script src="/static/js/jquery.dataTables.min.js"></script>
+    <script src="/static/js/jquery.dataTables.js"></script>
     <script src="/static/js/bootstrap-datatables.js"></script>
 
     <!-- fancyBox -->
@@ -165,6 +165,17 @@
                         $(e.target).parent().parent().parent().parent().modal('hide');
                         e.stopPropagation();
                 }
+            });
+            //退出登录时清除statesave缓存状态信息，jQuery-datatables.1.9.4使用cookie保存状态信息，而最新的1.10使用localStorage保存在本地
+            $('#logout').click(function(){
+                var href = $(this).attr("href")
+                var date = new Date();
+                date.setTime(date.getTime()-60*60*1000);
+                document.cookie = "SpryMedia_DataTables_DataTables_Table_0_"+"="+""+"; expires="+ date.toGMTString() +"; path="+"/asset/requisition_list/";
+                document.cookie = "SpryMedia_DataTables_DataTables_Table_0_"+"="+""+"; expires="+ date.toGMTString() +"; path="+"/asset/requisition_renew_list/";
+                document.cookie = "SpryMedia_DataTables_DataTables_Table_0_"+"="+""+"; expires="+ date.toGMTString() +"; path="+"/asset/server_list/";
+                document.cookie = "SpryMedia_DataTables_DataTables_Table_0_"+"="+""+"; expires="+ date.toGMTString() +"; path="+"/asset/service_list/";
+                window.location.href = href
             });
         });
         /*$('a[data-toggle="dropdown"]').on('dropdown', function(e) { //自定义事件

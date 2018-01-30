@@ -16,7 +16,8 @@ class Command(BaseCommand):
                 ser = Service.objects.get(name=req.asset)
             if ser.status == 2:
                 continue
-            end_date = datetime.datetime.strptime(req.end_date.strftime("%Y/%m/%d"),"%Y/%m/%d")
-            if end_date >= (now-datetime.timedelta(days=1)) and now >= (end_date-expire):
-                req.payment_status = 3
-                req.save()
+            if req.end_date:
+                end_date = datetime.datetime.strptime(req.end_date.strftime("%Y/%m/%d"),"%Y/%m/%d")
+                if end_date >= (now-datetime.timedelta(days=1)) and now >= (end_date-expire):
+                    req.payment_status = 3
+                    req.save()

@@ -49,6 +49,7 @@ tr>th, tr>td {
  				<table cellpadding="0" cellspacing="0" border="0" id="ser_tab" class="table table-striped table-bordered bs_normal" style="word-wrap:break-word;word-break:break-all">
   			    <thead>
   			      <tr>
+  			        <th>编号</th>
   			        <th>服务名称</th>
   			        <th>服务类型</th>
   			        <th>供应商</th>
@@ -64,6 +65,7 @@ tr>th, tr>td {
   			    <tbody>
                {% for service in services %}
     		        <tr class="gradeA">
+  			          <td>{{ service.id }}</td>
   			          <td>{{ service.name }}</td>
   			          <td>{{ service.type | default_if_none:"" }}</td>
                    <td>{{ service.supplier | default_if_none:"" }}</td>
@@ -275,7 +277,10 @@ tr>th, tr>td {
 $(document).ready(function() {
     /* Normal */
     $('.bs_normal').dataTable({
-      "bSort": false,
+      "bStateSave" : true, //是否打开客户端状态记录功能,此功能在ajax刷新纪录的时候不会将个性化设定回复为初始化状态
+      "iCookieDuration" : 3600, //状态保存的有效期
+      "bSort": true, //是否启动各个字段的排序功能
+      "aaSorting" : [[1, "asc"]], //默认的排序方式，第2列，升序排列
       "sPaginationType": "bs_full",
     }); 
     $('.bs_normal').each(function(){

@@ -18,4 +18,6 @@ def login(request):
 
 def logout(request):
     auth.logout(request)
-    return HttpResponseRedirect('/')
+    response =  HttpResponseRedirect('/')
+    #response.delete_cookie("SpryMedia_DataTables_DataTables_Table_0_")
+    return response

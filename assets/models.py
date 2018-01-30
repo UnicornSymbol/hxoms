@@ -68,12 +68,14 @@ class Idc(models.Model):
 
 class Server(models.Model):
     ip = models.GenericIPAddressField(unique=True, verbose_name='IP')
+    node_name = models.CharField(blank=True, null=True, max_length=50, verbose_name="Minion ID")
 
     idc = models.ForeignKey(Idc, blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'所属机房')
     cabinet = models.CharField(blank=True,null=True,  max_length=30, verbose_name=u'机柜号')
     position = models.PositiveIntegerField(blank=True, null=True, verbose_name=u'机器位置')
 
     status = models.IntegerField(choices=asset_status, blank=True, null=True, verbose_name=u'状态', default=1)
+    alive = models.BooleanField(default=False, verbose_name=u'在线状态')
     buy_date = models.DateField(blank=True, null=True, auto_now_add=True, verbose_name=u"购买日期")
     end_date = models.DateField(null=True, blank=True, verbose_name=u'到期日期')
     cost = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"购买费用")
@@ -89,13 +91,13 @@ class Server(models.Model):
 
 class ServerInfo(models.Model):
     ip = models.OneToOneField(Server, verbose_name="IP")
-    #other_ip = models.CharField(blank=True, null=True, max_length=100, verbose_name=u"其他IP")
+    other_ip = models.CharField(blank=True, null=True, max_length=100, verbose_name=u"其他IP")
     #remote_ip = models.GenericIPAddressField(blank=True ,null=True ,verbose_name=u'远控卡IP')
     hostname = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'主机名')
     hwaddr = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'MAC地址')
 
     manufacturer = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'厂商')
-    brand = models.CharField(blank=True, null=True, max_length=20, verbose_name=u'产品型号')
+    brand = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'产品型号')
 
     cpu = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'CPU型号')
     cpu_num = models.PositiveSmallIntegerField(verbose_name=u'CPU核数')
@@ -106,11 +108,11 @@ class ServerInfo(models.Model):
     system_version = models.CharField(blank=True, null=True, max_length=20, verbose_name=u'系统版本')
     system_arch = models.CharField(blank=True, null=True, max_length=20, verbose_name=u'系统平台')
 
-    type = models.IntegerField(choices=server_type, blank=True, null=True, verbose_name=u'类型', default=1)
+    #type = models.IntegerField(choices=server_type, blank=True, null=True, verbose_name=u'类型', default=1)
     virtual = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'虚拟环境')
     # 同一个表中，OneToOneField和ForeignKey不能同时关联同一个对象，所以这里只能关联self
     vm = models.ForeignKey("self", blank=True, null=True, on_delete=models.PROTECT, verbose_name=u'宿主机')
-    sn = models.CharField(blank=True, null=True, max_length=50, verbose_name=u'序列号')
+    sn = models.CharField(blank=True, null=True, max_length=100, verbose_name=u'序列号')
 
     def __str__(self):
         return self.ip.ip

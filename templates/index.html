@@ -5,6 +5,18 @@
 {% endblock %}
 
 {% block content %}
+{% if renew_count %}
+  <div class="row">
+    <div class="notice">
+        <li class="fa fa-volume-up"></li>
+        <span class="msg">你有 {{ renew_count }} 个待续费申请单需要处理&nbsp;&nbsp;[<a href="{% url 'requisition_renew_list' %}" title="查看详情">查看详情</a>]</span>
+        <button type="button" class="close" data-dismiss="notice"
+            aria-hidden="true">
+            &times;
+        </button>
+    </div>
+  </div>
+{% endif %}
 <div class="row">
     <div class="col-lg-3 col-md-6">
         <div class="panel panel-info">
@@ -95,4 +107,14 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+$(document).ready(function() {
+    $(".close").click(function(){
+        $(".notice").css("display","none");
+    });
+});
+</script>
 {% endblock %}

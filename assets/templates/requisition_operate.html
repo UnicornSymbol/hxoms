@@ -32,10 +32,14 @@ tr>th, tr>td {
 <div class="col-lg-12">
   <div class="panel panel-default">
      <div class="panel-heading">
-       <h3 class="panel-title">申请单更新</h3>
+       {% if renew %}
+         <h3 class="panel-title">申请单续费</h3>
+       {% else %}
+         <h3 class="panel-title">申请单更新</h3>
+       {% endif %}
      </div>
      <div class="panel-body">
-       <form class="form-horizontal form-border" id="form-update" method="post" action="">
+       <form class="form-horizontal form-border" id="form-req" method="post" action="">
          {% csrf_token %}
          <div class="form-group">
            <label class="control-label">资产</label>
@@ -83,7 +87,11 @@ tr>th, tr>td {
            {{ form.comment }}
          </div>
          <div>
-           <button type="button" class="btn btn-primary btn-sm" id="update-btn">更新</button>
+           {% if renew %}
+             <button type="button" class="btn btn-primary btn-sm" id="operate-btn">续费</button>
+           {% else %}
+             <button type="button" class="btn btn-primary btn-sm" id="operate-btn">更新</button>
+           {% endif %}
          </div>
        </form>
      </div>
@@ -107,7 +115,7 @@ $(document).ready(function() {
         pickerPosition: "top-right",
     });
 
-    $("#form-update input").blur(function(){
+    $("#form-req input").blur(function(){
         //alert("test")
         var parent = $(this).parent();
         parent.find("#errorinfo").remove()
@@ -123,7 +131,7 @@ $(document).ready(function() {
     });
 
     jQuery.fn.checkForm=function(){
-        $("#form-update input:not(:hidden)").each(function () {
+        $("#form-req input:not(:hidden)").each(function () {
             var $parent = $(this).parent();
             //$parent.addClass("has-error has-feedback")
             $parent.find("#errorinfo").remove()
@@ -145,9 +153,11 @@ $(document).ready(function() {
         });  
         return serializeObj;  
     };
-    $('#update-btn').click(function(){
-        var jsonData = $('#form-update').serializeJson()
-        $('#form-update').checkForm();
+    $('#operate-btn').click(function(){
+        var jsonData = $('#form-req').serializeJson()
+        referer = document.referrer;
+        //alert(referer);
+        $('#form-req').checkForm();
         if($("#errorinfo").length == 0){
             //alert("不存在")
             $.ajaxSetup({
@@ -159,13 +169,13 @@ $(document).ready(function() {
                 data:jsonData,
                 dataType:"json",
                 success: function(ret){
-                    if(ret["status"]=="更新成功"){
+                    if(ret["status"]=="操作成功"){
                         var option = {
                             onOk: function(){
-                              $(location).attr('href', "{% url 'requisition_list' %}");
+                              $(location).attr('href', referer);
                             },
                             onClose:function(){
-                              $(location).attr('href', "{% url 'requisition_list' %}"); 
+                              $(location).attr('href', referer); 
                             }
                         }
                         window.wxc.xcConfirm(ret["status"], window.wxc.xcConfirm.typeEnum.success,option);

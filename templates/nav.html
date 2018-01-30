@@ -85,7 +85,7 @@
           <li><a href="#"><i class="ion ion-ios7-person"></i> Profile</a></li>
           <li><a href="#"><i class="ion ion-ios7-gear"></i> Settings</a></li>
           <li class="divider"></li>
-          <li><a href="{% url 'logout' %}" data-type="out"><i class="ion ion-log-out"></i> Sign Out</a></li>
+          <li><a id="logout" href="{% url 'logout' %}" data-type="out" onclick="return false;"><i class="ion ion-log-out"></i> Sign Out</a></li>
         </ul>
       </li>
     </ul>

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% load custom_filter %}
+
+{% block css %}
+<script src="/static/js/jquery-1.11.0.min.js"></script>
+<script src="/static/plugins/xcConfirm/js/xcConfirm.js" type="text/javascript"></script>
+<link rel="stylesheet" type="text/css" href="/static/plugins/xcConfirm/css/xcConfirm.css"/>
+<link rel="stylesheet" type="text/css" href="/static/plugins/jquery.mloading/src/jquery.mloading.css"/>
+<link rel="stylesheet" type="text/css" href="/static/css/reset.css"/>
+<link href="/static/css/hxoms.css" rel="stylesheet">
+<style>
+tr>th, tr>td {
+    font-size: 12px;
+}
+.editable select{
+    width: 150px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="col-md-12">
+  <ul class="nav nav-tabs">
+    <li class="active">
+      <a href="#server-detail" data-toggle="tab" onclick="return false;">服务器详情</a>
+    </li>
+    <li class="pull-right"><h1 class="section-title">服务器详情</h1></li>
+  </ul>
+</div>
+
+<div class="tab-content">
+  <div class="tab-pane active" id="server-detail">
+    <div class="col-lg-7">
+    	<div class="panel panel-info">
+    		<div class="panel-heading">
+    			<h3 class="panel-title">{{ server.ip }}
+              {% if server.alive %}<span style="color:green">【online】</span>{% else %}<span style="color:red">【offline】</span>{% endif %}
+              <span class="pull-right">
+                <a href="{% url 'server_update' %}?ip={{ server.ip }}&flush=1" type="button"
+                class="btn btn-default btn-xs update_serverinfo"
+                style="width: 54px" title="刷新服务器信息" onclick="return false">刷新</a>
+              </span>
+            </h3>
+    		</div>
+  			<div class="panel-body">
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td style=" border-top: none !important;"><strong>基本信息</strong></td>
+                </tr>
+                <tr>
+                  <td width="20%">主机名:</td>
+                  <td><b>{{ serverinfo.hostname }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">IP:</td>
+                  <td><b>{{ server.ip }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">其它IP:</td>
+                  <td><b>{{ serverinfo.other_ip }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">虚拟环境:</td>
+                  <td><b>{{ serverinfo.virtual }}</b></td>
+                </tr>
+                <tr ip="{{ server.ip }}">
+                  <td width="20%">宿主机(双击编辑):</td>
+                  <td class="vm"><b>{{ serverinfo.vm }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">购买日期:</td>
+                  <td><b>{{ server.buy_date | date:"Y/m/d" }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">到期日期:</td>
+                  <td><b>{{ server.end_date | date:"Y/m/d" }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">作用:</td>
+                  <td><b>{{ server.use }}</b></td>
+                </tr>
+                <tr style="height:10px"></tr>
+                <tr>
+                  <td style=" border-top: none !important;"><strong>系统信息</strong></td>
+                </tr>
+                <tr>
+                  <td width="20%">系统类型:</td>
+                  <td><b>{{ serverinfo.system_type }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">系统版本:</td>
+                  <td><b>{{ serverinfo.system_version }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">系统架构:</td>
+                  <td><b>{{ serverinfo.system_arch }}</b></td>
+                </tr>
+                <tr style="height:10px"></tr>
+                <tr>
+                  <td style=" border-top: none !important;"><strong>硬件信息</strong></td>
+                </tr>
+                <tr>
+                  <td width="20%">SN号:</td>
+                  <td><b>{{ serverinfo.sn }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">厂商:</td>
+                  <td><b>{{ serverinfo.manufacturer }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">产品型号:</td>
+                  <td><b>{{ serverinfo.brand }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">CPU型号:</td>
+                  <td><b>{{ serverinfo.cpu }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">CPU核数:</td>
+                  <td><b>{{ serverinfo.cpu_num }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">内存大小:</td>
+                  <td><b>{{ serverinfo.memory }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">硬盘大小:</td>
+                  <td><b>{{ serverinfo.disk }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">MAC地址:</td>
+                  <td><b>{{ serverinfo.hwaddr }}</b></td>
+                </tr>
+                <tr style="height:10px"></tr>
+                <tr>
+                  <td style=" border-top: none !important;"><strong>位置信息</strong></td>
+                </tr>
+                <tr>
+                  <td width="20%">所在机房:</td>
+                  <td><b>{{ server.idc }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">机柜号:</td>
+                  <td><b>{{ server.cabinet }}</b></td>
+                </tr>
+                <tr>
+                  <td width="20%">机器位置:</td>
+                  <td><b>{{ server.position }}</b></td>
+                </tr>
+                <tr>
+              </tbody>
+            </table>
+    		</div>
+    	</div>  <!--panel end-->
+    </div>
+    <div class="col-lg-5">
+    	<div class="panel panel-info">
+    		<div class="panel-heading">
+    			<h3 class="panel-title">变更历史</h3>
+    		</div>
+         <div class="panel-body">
+           <table class="table">
+             <tbody>
+               <tr>
+                 <td style=" border-top: none !important;">暂无记录</td>
+               </tr>
+             </tbody>
+           </table>
+         </div>
+    	</div>  <!--panel end-->
+    </div>
+  </div>  <!--pane end-->
+</div>  <!--content end-->
+{% endblock %}
+
+{% block js %}
+<script src="/static/js/validators.js"></script>
+<script src="/static/plugins/jquery.mloading/src/jquery.mloading.js" type="text/javascript"></script>
+<script src="/static/plugins/jquery_jeditable/src/jquery.jeditable.js" type="text/javascript"></script>
+<script>
+$(document).ready(function() {
+    $('.update_serverinfo').click(function(){
+        var url=$(this).attr("href")
+        $("body").mLoading({
+            text:"更新中...",//加载文字，默认值：加载中...
+            //icon:"",//加载图标，默认值：一个小型的base64的gif图片
+            //html:false,//设置加载内容是否是html格式，默认值是false
+            //content:"",//忽略icon和text的值，直接在加载框中显示此值
+            mask:true,//是否显示遮罩效果，默认显示
+        });
+        $.ajax({
+            type:"GET",
+            url:url,
+            data:{},
+            dataType:"json",
+            success: function(ret){
+                if(ret["status"]=="更新成功"){
+                    window.location.reload();
+                }
+                else{
+                    window.wxc.xcConfirm(ret["msg"], window.wxc.xcConfirm.typeEnum.error);
+                }
+            }
+        })
+    });
+    $('.vm').editable("{% url 'server_update' %}",{
+        event: 'dblclick',  //触发编辑的事件，常用的是click或dblclick。
+        tooltip: '双击编辑...',  //鼠标悬停在等编辑元素上面显示的文字提醒，就是给待编辑元素加了title。
+        //data: [1,2,3,4,5,6,7,8,9,0,11,12,13,14,15,1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7,8,9,0],
+        loadurl: "{% url 'server_update' %}",  //通常情况下要编辑的数据都是页面上显示的，但也可以通过这个参数的地址获取数据来展示在编辑框内进行编辑并提交。默认会携带触发editable的dom对象的id参数。
+        loaddata: function(value,settings){  //loadurl请求时额外携带的参数，
+            return {ip:$(this).parents("tr").attr("ip"), get_server:1} 
+		  },
+        loadtext: "Loading...",  //loadurl请求过程中显示的提醒信息，无效
+        type: "select",  //生成的form表单内input框的类型，有text、select、textarea三种。当是select时，要显示的数据应该是由下面的loadurl或者data参数提供的hash。
+        submit: "确定",  //确认提交按钮的值，没有则没有该按钮。
+        cancel: "取消",  //取消编辑按钮的值，没有则没有该按钮。
+        //indicator: '<img src="/static/img/indicator.gif">',  //提交过程中显示的提醒，在调用callback函数之前显示。
+        indicator: "Saving...",
+        cssclass: "editable",  //在css样式中通过.editable select{width:150px;}控制select框宽度
+        //style: "width: 500px",  //无效
+        submitdata: function(value,settings){  //提交的数据，默认会提交参数name和参数id的值，通过该参数追加传递的数据。该参数可以直接写一个hash数据，
+                                               //如{a:’1’, b:’2’}，但一般是动态数据，通过像callback一样的函数返回一个hash数据。如function(value, settings){return {isempty:$(this).attr(‘isempty’)};}。
+            return {ip:$(this).parents("tr").attr("ip")}
+        },
+    });
+});
+</script>
+{% endblock %}
