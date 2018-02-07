@@ -34,12 +34,21 @@ tr>th, tr>td {
     	<div class="panel panel-info">
     		<div class="panel-heading">
     			<h3 class="panel-title">{{ server.ip }}
-              {% if server.alive %}<span style="color:green">【online】</span>{% else %}<span style="color:red">【offline】</span>{% endif %}
+              {% if server.alive %}
+              <span style="color:green">【online】</span>
               <span class="pull-right">
                 <a href="{% url 'server_update' %}?ip={{ server.ip }}&flush=1" type="button"
                 class="btn btn-default btn-xs update_serverinfo"
                 style="width: 54px" title="刷新服务器信息" onclick="return false">刷新</a>
               </span>
+              {% else %}
+              <span style="color:red">【offline】</span>
+              <span class="pull-right">
+                <a href="{% url 'server_update' %}?ip={{ server.ip }}&flush=1" type="button"
+                class="btn btn-default btn-xs update_serverinfo"
+                style="width: 54px" title="刷新服务器信息" onclick="return false" disabled>刷新</a>
+              </span>
+              {% endif %}
             </h3>
     		</div>
   			<div class="panel-body">
