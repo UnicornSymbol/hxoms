@@ -58,7 +58,7 @@ tr>th, tr>td {
   			          <td class="center">{{ idc.phone }}</td>
                    <td>{{ idc.email }}</td> 
                    <td>
-                     <a href="{% url 'idc_operate' id=idc.id %}" title="编辑" title="编辑"><i class="glyphicon glyphicon-edit"></i></a>
+                     <a href="{% url 'idc_operate' id=idc.id %}" title="编辑"><i class="glyphicon glyphicon-edit"></i></a>
                      <a href="{% url 'idc_operate' id=idc.id %}" style="color:red" title="删除" onclick="del(this);return false"><i class="glyphicon glyphicon-trash"></i></a>
                    </td>
   			        </tr>

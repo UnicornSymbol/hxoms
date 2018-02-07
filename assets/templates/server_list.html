@@ -79,7 +79,7 @@ tr>th, tr>td {
                    </td> 
                    <td>{% if server.alive %}<span style="color:green">online</span>{% else %}<span style="color:red">offline</span>{% endif %}</td>
                    <td style="width:6%">
-                     <a href="{% url 'server_operate' id=server.id %}" title="编辑" title="编辑"><i class="glyphicon glyphicon-edit"></i></a>
+                     <a href="{% url 'server_operate' id=server.id %}" title="编辑"><i class="glyphicon glyphicon-edit"></i></a>
                      <a href="{% url 'server_operate' id=server.id %}" style="color:red" title="删除" onclick="del(this);return false"><i class="glyphicon glyphicon-trash"></i></a>
                      <a href="{% url 'server_operate' id=server.id %}?refresh=1" style="color:green" title="刷新在线状态和node_name"  onclick="refresh(this);return false"><i class="glyphicon glyphicon-refresh"></i></a>
                    </td> 

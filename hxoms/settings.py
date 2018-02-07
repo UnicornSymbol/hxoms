@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'assets',
+    'deploy',
     'rest_framework',
     'django_crontab',
     'djcelery',

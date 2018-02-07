@@ -97,13 +97,13 @@ def main():
     sapi = SaltAPI('https://192.168.229.128:8888','saltapi','123456')
     sapi.token_id()
     print(sapi.list_all_key())
-    print(sapi.salt_alive('master'))
-    print(sapi.delete_key('node2'))
+    print(sapi.salt_alive('wyb-test'))
+    print(sapi.delete_key(None))
     #print(sapi.list_all_key())
     print(sapi.accept_key('node2'))
     #print(sapi.list_all_key())
     #print(sapi.remote_execution('master', 'grains.item', 'ipv4'))
-    print(sapi.remote_noarg_execution('master', 'grains.items'))
+    print(sapi.remote_noarg_execution('master', 'grains.items')['ip4_interfaces'])
     #for i in sapi.remote_execution('master', 'cmd.run', "parted -ls | grep \"Disk \/dev\/\" | awk -F\"[ ]\" '{print $3}' | awk -F\"MB|GB|TB|PB\" '{print $1}'").split("\n"):
 	 #    print(i)
 

@@ -79,7 +79,7 @@ def server_operate(request,id):
             pass
         except ProtectedError:
             return JsonResponse({"status": u"删除失败", "msg": u"请确保没有虚拟机依赖于{}".format(server.ip)})
-        delete_key.delay(server.node_name)
+        #delete_key.delay(server.node_name)
         server.delete()
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
@@ -157,8 +157,8 @@ def status_change(request,sid,status):
                     pass
                 except ProtectedError:
                     return JsonResponse({"status": u"更改失败", "msg": u"请确保没有虚拟机依赖于{}".format(ser.ip)})
-                delete_key.delay(ser.node_name)
-                ser.node_name = ""
+                #delete_key.delay(ser.node_name)
+                ser.node_name = None
                 ser.alive = False
             ser.status = status
             ser.save()
