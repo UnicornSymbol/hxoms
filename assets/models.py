@@ -76,7 +76,7 @@ class Server(models.Model):
 
     status = models.IntegerField(choices=asset_status, blank=True, null=True, verbose_name=u'状态', default=1)
     alive = models.BooleanField(default=False, verbose_name=u'在线状态')
-    buy_date = models.DateField(blank=True, null=True, auto_now_add=True, verbose_name=u"购买日期")
+    create_date = models.DateField(blank=True, null=True, auto_now_add=True, verbose_name=u"创建日期")
     end_date = models.DateField(null=True, blank=True, verbose_name=u'到期日期')
     cost = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"购买费用")
     use = models.TextField(blank=True, null=True, max_length=100, verbose_name=u'作用')
@@ -163,7 +163,7 @@ class Service(models.Model):
     backstage = models.CharField(blank=True, null=True, max_length=128, verbose_name=u"后台地址")
     status = models.IntegerField(choices=asset_status, blank=True, null=True, verbose_name=u'状态', default=1)
     
-    buy_date = models.DateField(blank=True, null=True, auto_now_add=True, verbose_name=u"购买日期")
+    create_date = models.DateField(blank=True, null=True, auto_now_add=True, verbose_name=u"创建日期")
     end_date = models.DateField(null=True, blank=True, verbose_name=u'到期日期')
     cost = models.CharField(blank=True, null=True, max_length=20, verbose_name=u"购买费用")
 

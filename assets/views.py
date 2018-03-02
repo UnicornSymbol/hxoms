@@ -11,9 +11,11 @@ from django.http import HttpResponse,JsonResponse,HttpResponseBadRequest,Streami
 from django.contrib.auth.decorators import login_required
 from django.db.models import ProtectedError
 from django.core.exceptions import ObjectDoesNotExist
+from itertools import chain  #QuerySet合并
 from assets.forms import IdcForm,ServerForm,SupplierForm,ServiceForm,RequisitionForm
 from assets.models import Idc,Server,ServerInfo,Supplier,Type,Service,Requisition
 from assets.tasks import *
+from utils.common import *
 
 # Create your views here.
 @login_required
@@ -84,13 +86,13 @@ def server_operate(request,id):
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
         #print(request.POST)
-        buy_date = request.POST.get('buy_date')
+        #create_date = request.POST.get('create_date')
         end_date = request.POST.get('end_date')
         form = ServerForm(request.POST, instance=server)
         if form.is_valid():
             inst = form.save(commit=False)
-            if buy_date:
-                inst.buy_date = datetime.datetime.strptime(buy_date,"%Y-%m-%d")
+            #if create_date:
+            #    inst.create_date = datetime.datetime.strptime(create_date,"%Y-%m-%d")
             if end_date:
                 inst.end_date = datetime.datetime.strptime(end_date,"%Y-%m-%d")
             inst.save()
@@ -274,15 +276,15 @@ def service_operate(request,id):
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
         type = request.POST.get('type')
-        buy_date = request.POST.get('buy_date')
+        #create_date = request.POST.get('create_date')
         end_date = request.POST.get('end_date')
         obj,created = Type.objects.get_or_create(name=type)
         form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
             inst = form.save(commit=False)
             inst.type = obj
-            if buy_date:
-                inst.buy_date = datetime.datetime.strptime(buy_date,"%Y-%m-%d")
+            #if create_date:
+            #    inst.create_date = datetime.datetime.strptime(create_date,"%Y-%m-%d")
             if end_date:
                 inst.end_date = datetime.datetime.strptime(end_date,"%Y-%m-%d")
             inst.save()
@@ -402,3 +404,54 @@ def pay_confirm(request,id):
     req.save()
     ser.save()
     return JsonResponse({"status": u"操作成功"})
+
+def cost_show(request):
+    now = datetime.datetime.now()
+    data = [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]]
+    count = 0
+    categories = range(now.year-4, now.year+1)
+    for y in categories:
+        servers = Server.objects.filter(end_date__year__gte=y)
+        services = Service.objects.filter(end_date__year__gte=y)
+        for s in chain(servers,services):
+            if s.end_date:
+                quarter = get_quarter(s.end_date)
+            else:
+                quarter = None
+            if quarter:
+                if s.end_date.year > y:
+                    if s.create_date.year < y:
+                        for i in range(0,4):
+                            data[i][count] += round(float(s.cost)*3,2)
+                    elif s.create_date.year == y:
+                        start_quarter = get_quarter(s.create_date)
+                        for i in range(start_quarter-1,4):
+                            if i == start_quarter-1:
+                                data[i][count] += round(float(s.cost)*(start_quarter*3-s.create_date.month+1),2)
+                            else:
+                                data[i][count] += round(float(s.cost)*3,2)
+                    else:
+                        pass
+                elif s.end_date.year == y:
+                    if s.create_date.year < y:
+                        for i in range(0,quarter):
+                            if i == quarter-1:
+                                data[i][count] += round(float(s.cost)*(s.end_date.month-(quarter-1)*3),2)
+                            else:
+                                data[i][count] += round(float(s.cost)*3,2)
+                    elif s.create_date.year == y:
+                        start_quarter = get_quarter(s.create_date)
+                        for i in range(start_quarter-1,quarter):
+                            if start_quarter == quarter:
+                                data[i][count] += round(float(s.cost)*(s.end_date.month-s.create_date.month+1),2)
+                            elif start_quarter < quarter:
+                                if i == start_quarter-1:
+                                    data[i][count] += round(float(s.cost)*(start_quarter*3-s.create_date.month+1),2)
+                                elif i == quarter-1:
+                                    data[i][count] += round(float(s.cost)*(s.end_date.month-(quarter-1)*3),2)
+                                else:
+                                    data[i][count] += round(float(s.cost)*3,2)
+                    else:
+                        pass
+        count += 1
+    return JsonResponse({"categories": categories,"data": data})

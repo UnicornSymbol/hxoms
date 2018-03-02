@@ -30,7 +30,7 @@ class ServerForm(forms.ModelForm):
             'cabinet': forms.TextInput(attrs={'class': 'form-control'}),
             'position': forms.NumberInput(attrs={'class': 'form-control'}),
             'cost': forms.TextInput(attrs={'class': 'form-control',
-                                           'placeholder': u'单位(元/季度)'}),
+                                           'placeholder': u'单位(元/月)'}),
             'use': forms.Textarea(
                 attrs={'class': 'form-control',
                        'placeholder': u'请输入100字以内',
@@ -86,7 +86,7 @@ class ServiceForm(forms.ModelForm):
                        'rows': '5'}),
             'backstage': forms.TextInput(attrs={'class': 'form-control'}),
             'cost': forms.TextInput(attrs={'class': 'form-control',
-                                           'placeholder': u'单位(元/季度)'}),
+                                           'placeholder': u'单位(元/月)'}),
         }
 
 class RequisitionForm(forms.ModelForm):

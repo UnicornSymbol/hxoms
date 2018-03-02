@@ -107,13 +107,208 @@
         </div>
     </div>
 </div>
+<div id="main" style="width: auto;height:500px;"></div>
 {% endblock %}
 
 {% block js %}
+<script src="/static/js/echarts.js"></script>
+<!--AMD模块加载器(require)-->
+<script src="/static/js/esl.js"></script>
 <script>
 $(document).ready(function() {
     $(".close").click(function(){
         $(".notice").css("display","none");
+    });
+});
+var myChart = echarts.init(document.getElementById('main'));
+
+// 指定图表的配置项和数据
+var posList = [
+    'left', 'right', 'top', 'bottom',
+    'inside',
+    'insideTop', 'insideLeft', 'insideRight', 'insideBottom',
+    'insideTopLeft', 'insideTopRight', 'insideBottomLeft', 'insideBottomRight'
+];
+
+configParameters = {
+    rotate: {
+        min: -90,
+        max: 90
+    },
+    align: {
+        options: {
+            left: 'left',
+            center: 'center',
+            right: 'right'
+        }
+    },
+    verticalAlign: {
+        options: {
+            top: 'top',
+            middle: 'middle',
+            bottom: 'bottom'
+        }
+    },
+    position: {
+        options: echarts.util.reduce(posList, function (map, pos) {
+            map[pos] = pos;
+            return map;
+        }, {})
+    },
+    distance: {
+        min: 0,
+        max: 100
+    }
+};
+
+config = {
+    rotate: 90,
+    align: 'left',
+    verticalAlign: 'middle',
+    position: 'insideBottom',
+    distance: 15,
+    onChange: function () {
+        var labelOption = {
+            normal: {
+                rotate: config.rotate,
+                align: config.align,
+                verticalAlign: config.verticalAlign,
+                position: config.position,
+                distance: config.distance
+            }
+        };
+        myChart.setOption({
+            series: [{
+                label: labelOption
+            }, {
+                label: labelOption
+            }, {
+                label: labelOption
+            }, {
+                label: labelOption
+            }]
+        });
+    }
+};
+
+
+var labelOption = {
+    normal: {
+        show: true,
+        position: config.position,
+        distance: config.distance,
+        align: config.align,
+        verticalAlign: config.verticalAlign,
+        rotate: config.rotate,
+        formatter: '{c}  {name|{a}}',
+        fontSize: 16,
+        rich: {
+            name: {
+                textBorderColor: '#fff'
+            }
+        }
+    }
+};
+
+option = {
+    title: {
+        text: '近5年季度费用总览'
+    },
+    color: ['#003366', '#006699', '#4cabce', '#e5323e'],
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+            type: 'shadow'
+        }
+    },
+    legend: {
+        data: ['第一季度', '第二季度', '第三季度', '第四季度']
+    },
+    toolbox: {
+        show: true,
+        orient: 'vertical',
+        left: 'right',
+        top: 'center',
+        feature: {
+            mark: {show: true},
+            dataView: {show: true, readOnly: false},
+            magicType: {show: true, type: ['line', 'bar', 'stack', 'tiled']},
+            restore: {show: true},
+            saveAsImage: {show: true}
+        }
+    },
+    calculable: true,
+    xAxis: [
+        {
+            name : '时间(年)',
+            type: 'category',
+            axisTick: {show: false},
+            data: []
+        }
+    ],
+    yAxis: [
+        {
+            name : '费用(元/季度)',
+            type: 'value'
+        }
+    ],
+    series: [
+        {
+            name: '第一季度',
+            type: 'bar',
+            barGap: 0,
+            label: labelOption,
+            data: []
+        },
+        {
+            name: '第二季度',
+            type: 'bar',
+            label: labelOption,
+            data: []
+        },
+        {
+            name: '第三季度',
+            type: 'bar',
+            label: labelOption,
+            data: []
+        },
+        {
+            name: '第四季度',
+            type: 'bar',
+            label: labelOption,
+            data: []
+        }
+    ]
+};
+
+// 使用刚指定的配置项和数据显示图表。
+myChart.setOption(option);
+
+$.get("{% url 'cost_show' %}",'data.json').done(function (data) {
+    // 填入数据
+    myChart.setOption({
+        xAxis: {
+            data: data.categories
+        },
+        series: [
+            {
+                // 根据名字对应到相应的系列
+                name: '第一季度',
+                data: data.data[0]
+            },
+            {
+                name: '第二季度',
+                data: data.data[1]
+            },
+            {
+                name: '第三季度',
+                data: data.data[2]
+            },
+            {
+                name: '第四季度',
+                data: data.data[3]
+            },
+        ]
     });
 });
 </script>

@@ -68,20 +68,20 @@
            <label class="control-label">购买费用</label>
            {{ form.cost }}
          </div>
-         <div class="form-group">
-           <label class="control-label">购买日期</label>
-           <div class="input-group date form_buy_date">
-             {% if service.buy_date %}
-               <input class="form-control" id="id_buy_date" name="buy_date" value={{ service.buy_date | date:"Y-m-d" }} type="text" readonly>
+         <!--div class="form-group">
+           <label class="control-label">创建日期</label>
+           <div class="input-group date form_create_date">
+             {% if service.create_date %}
+               <input class="form-control" id="id_create_date" name="create_date" value={{ service.create_date | date:"Y-m-d" }} type="text" readonly>
              {% else %}
-               <input class="form-control" id="id_end_date" name="end_date" value="" type="text" readonly>
+               <input class="form-control" id="id_create_date" name="create_date" value="" type="text" readonly>
              {% endif %}
              <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
              <span class="input-group-addon"> 
                <span class="glyphicon glyphicon-calendar"></span> 
              </span>
            </div>
-         </div>
+         </div-->
          <div class="form-group">
            <label class="control-label">到期日期</label>
            <div class="input-group date form_end_date">
@@ -110,7 +110,7 @@
 <script src="{% static 'plugins/bootstrap-datetimepicker/js/bootstrap-datetimepicker.js' %}"></script>
 <script>
 $(document).ready(function() {
-    $('.form_buy_date').datetimepicker({
+    $('.form_create_date').datetimepicker({
         format: 'yyyy-mm-dd',
         minView: 'month', //选择日期后，不会再跳转去选择时分秒
         weekStart: 0,
@@ -154,7 +154,9 @@ $(document).ready(function() {
         if($(this).is("#id_name")){
             $.checkName(this.value,parent,"请输入服务名称")
         }
-
+        else if($(this).is("#id_cost")){
+            $.checkCost(this.value,parent)
+        }
     });
 
     jQuery.fn.checkForm=function(){
@@ -166,6 +168,9 @@ $(document).ready(function() {
             $parent.removeClass("has-error")
             if($(this).is("#id_name")){
                 $.checkName(this.value,$parent,"请输入服务名称")
+            }
+            else if($(this).is("#id_cost")){
+                $.checkCost(this.value,$parent)
             }
         });
     };

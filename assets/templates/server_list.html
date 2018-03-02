@@ -44,7 +44,7 @@ tr>th, tr>td {
   			        <th>机柜号</th>
   			        <th>机器位置</th>
   			        <th>作用</th>
-  			        <th>购买日期</th>
+  			        <th>创建日期</th>
   			        <th>到期日期</th>
   			        <th>购买费用</th>
   			        <th>状态</th>
@@ -61,10 +61,10 @@ tr>th, tr>td {
                    <td>{{ server.cabinet | default_if_none:"" }}</td>
   			          <td>{{ server.position | default_if_none:"" }}</td>
   			          <td class="center" style="width:20%">{{ server.use | default_if_none:"" }}</td>
-  			          <td class="center">{{ server.buy_date | date:"Y/m/d" }}</td>
+  			          <td class="center">{{ server.create_date | date:"Y/m/d" }}</td>
   			          <td class="center">{{ server.end_date | date:"Y/m/d" | end_date }}</td>
                    {% if server.cost %}
-                     <td>{{ server.cost }}元/季度</td> 
+                     <td>{{ server.cost | floatformat:"2" }}元/月</td> 
                    {% else %}
                      <td>{{ server.cost | default_if_none:"" }}</td> 
                    {% endif %}
@@ -170,6 +170,9 @@ $(document).ready(function() {
             //alert("test")
             $.checkIp(this.value,parent)
         }
+        else if($(this).is("#id_cost")){
+            $.checkCost(this.value,parent)
+        }
     });
 
     jQuery.fn.checkForm=function(){
@@ -183,6 +186,9 @@ $(document).ready(function() {
             if($(this).is("#id_ip")){
                 //alert("test")
                 $.checkIp(this.value,$parent)
+            }
+            else if($(this).is("#id_cost")){
+                $.checkCost(this.value,$parent)
             }
         });
     };

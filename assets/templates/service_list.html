@@ -55,7 +55,7 @@ tr>th, tr>td {
   			        <th>供应商</th>
   			        <th>作用</th>
   			        <th>后台</th>
-  			        <th>购买日期</th>
+  			        <th>创建日期</th>
   			        <th>到期日期</th>
   			        <th>购买费用</th>
   			        <th>状态</th>
@@ -73,10 +73,10 @@ tr>th, tr>td {
                    <td style="width:20%">
                      <a href={{ service.backstage }} target="_blank">{{ service.backstage | default_if_none:"" }}</a>
                    </td>
-  			          <td class="center">{{ service.buy_date | date:"Y/m/d" }}</td>
+  			          <td class="center">{{ service.create_date | date:"Y/m/d" }}</td>
   			          <td class="center">{{ service.end_date | date:"Y/m/d" |end_date }}</td>
                    {% if service.cost %}
-                     <td>{{ service.cost }}元/季度</td>
+                     <td>{{ service.cost | floatformat:"2" }}元/月</td>
                    {% else %}
                      <td>{{ service.cost | default_if_none:"" }}</td> 
                    {% endif %}
@@ -462,6 +462,9 @@ $(document).ready(function() {
         if($(this).is("#id_name")){
             $.checkName(this.value,parent,"请输入服务名称")
         }
+        else if($(this).is("#id_cost")){
+            $.checkCost(this.value,parent)
+        }
     });
 
     jQuery.fn.checkSerForm=function(){
@@ -473,6 +476,9 @@ $(document).ready(function() {
             $parent.removeClass("has-error")
             if($(this).is("#id_name")){
                 $.checkName(this.value,$parent,"请输入服务名称")
+            }
+            else if($(this).is("#id_cost")){
+                $.checkCost(this.value,$parent)
             }
         });
     };

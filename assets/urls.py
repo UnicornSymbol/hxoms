@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^requisition_renew_list/$', views.requisition_renew_list, name='requisition_renew_list'),
     url(r'^req_approve/(?P<id>\d+)/(?P<result>\w{2,3})/$', views.req_approve, name='req_approve'),
     url(r'^pay_confirm/(?P<id>\d+)/$', views.pay_confirm, name='pay_confirm'),
+    url(r'^cost_show/$', views.cost_show, name='cost_show'),
     #url(r'^idc_add/$', views.idc_manage, name='idc_add'),
     #url(r'^idc_edit/(?P<id>\d+)/$', views.idc_manage, name='idc_edit'),
     #url(r'^idc_delete/$', views.idc_manage, name='idc_delete'),
