@@ -26,6 +26,7 @@ def idc_list(request):
         if form.is_valid():
             #print(request.POST)
             form.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"添加机房",content=u"添加机房：{}".format(idc.name))
             return JsonResponse({"status": u"添加成功"})
         else:
             return JsonResponse({"status": u"添加失败", "msg": u"机房名字已存在"})
@@ -39,6 +40,7 @@ def idc_operate(request,id):
     if request.method == 'DELETE':
         try:
             idc.delete()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除机房",content=u"删除机房：{}".format(idc.name))
         except ProtectedError:
             return JsonResponse({"status": u"删除失败", "msg": u"请确保没有服务器依赖于它"})
         return JsonResponse({"status": u"删除成功"})
@@ -46,6 +48,7 @@ def idc_operate(request,id):
         form = IdcForm(request.POST, instance=idc)
         if form.is_valid():
             form.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新机房",content=u"更新机房：{}".format(idc.name))
             return JsonResponse({"status": u"更新成功"})
         else:
             return render(request, 'idc_operate.html', locals())
@@ -60,6 +63,7 @@ def server_list(request):
         if form.is_valid():
             #print(request.POST)
             form.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"添加服务器",content=u"添加服务器：{}".format(server.ip))
             return JsonResponse({"status": u"添加成功"})
         else:
             return JsonResponse({"status": u"添加失败", "msg": u"IP已存在"})
@@ -83,6 +87,7 @@ def server_operate(request,id):
             return JsonResponse({"status": u"删除失败", "msg": u"请确保没有虚拟机依赖于{}".format(server.ip)})
         #delete_key.delay(server.node_name)
         server.delete()
+        operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除服务器",content=u"删除服务器：{}".format(server.ip))
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
         #print(request.POST)
@@ -96,6 +101,7 @@ def server_operate(request,id):
             if end_date:
                 inst.end_date = datetime.datetime.strptime(end_date,"%Y-%m-%d")
             inst.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新服务器",content=u"更新服务器：{}".format(server.ip))
             return JsonResponse({"status": u"更新成功"})
         else:
             return JsonResponse({"status": u"更新失败", "msg": u"表单错误"})
@@ -123,6 +129,7 @@ def update_serverinfo(request):
         if flush and ip:
             ser = Server.objects.get(ip=ip)
             get_server_info(ser)
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"刷新服务器信息",content=u"刷新{}服务器信息".format(ip))
             return JsonResponse({"status": u"更新成功"})
     if request.method == 'POST':
         ip = request.POST.get('ip')
@@ -135,6 +142,7 @@ def update_serverinfo(request):
             #print(vm)
             serverinfo.vm = ServerInfo.objects.get(ip=Server.objects.get(ip=vm))  #宿主机info
             serverinfo.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新宿主机",content=u"更新{}服务器宿主机信息".format(ip))
             return HttpResponse(vm)
         except ObjectDoesNotExist:
             return HttpResponse(u"请先获取本机或宿主机服务器信息...")
@@ -147,8 +155,10 @@ def status_change(request,sid,status):
     if sid:
         if asset_type == "server":
             ser = get_object_or_404(Server, id=sid)
+            asset = ser.ip
         elif asset_type == "service":
             ser = get_object_or_404(Service, id=sid)
+            asset = ser.name
         else:
             return JsonResponse({"status": u"更改失败", "msg": u"错误的资产类型"})
         if status in ["1","2"]:
@@ -164,6 +174,7 @@ def status_change(request,sid,status):
                 ser.alive = False
             ser.status = status
             ser.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更改资产状态",content=u"更改资产{}状态".format(asset))
             return JsonResponse({"status": u"更改成功"})
         else:
             return JsonResponse({"status": u"更改失败", "msg": u"错误的状态值"})
@@ -204,6 +215,7 @@ def supplier_list(request):
         form = SupplierForm(request.POST, request.FILES, instance=supplier)
         if form.is_valid():
             form.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"添加供应商",content=u"添加供应商：{}".format(supplier.name))
             return JsonResponse({"status": u"添加成功"})
         else:
             return JsonResponse({"status": u"添加失败", "msg": u"供应商已存在"})
@@ -220,6 +232,7 @@ def supplier_operate(request, id=None):
             if sup.contract:
                 file_path = sup.contract.path
             sup.delete()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除供应商",content=u"删除供应商：{}".format(sup.name))
         except ProtectedError:
             return JsonResponse({"status": u"删除失败", "msg": u"请确保没有服务依赖于它"})
         else:
@@ -238,6 +251,7 @@ def supplier_operate(request, id=None):
         if form.is_valid():
             form.save()
             #print sup.id,sup.name
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新供应商",content=u"更新供应商：{}".format(sup.name))
             return JsonResponse({"status": u"更新成功", "id": sup.id})
         else:
             #print(form.cleaned_data)
@@ -258,6 +272,7 @@ def service_list(request):
             inst = form.save(commit=False)
             inst.type = obj
             inst.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"添加服务",content=u"添加服务：{}".format(service.name))
             return JsonResponse({"status": u"添加成功"})
         else:
             return JsonResponse({"status": u"添加失败", "msg": u"服务名称已存在"})
@@ -273,6 +288,7 @@ def service_operate(request,id):
     service = get_object_or_404(Service, pk=id)
     if request.method == 'DELETE':
         service.delete()
+        operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除服务",content=u"删除服务：{}".format(service.name))
         return JsonResponse({"status": u"删除成功"})
     if request.method == 'POST':
         type = request.POST.get('type')
@@ -288,6 +304,7 @@ def service_operate(request,id):
             if end_date:
                 inst.end_date = datetime.datetime.strptime(end_date,"%Y-%m-%d")
             inst.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新服务",content=u"更新服务：{}".format(service.name))
             return JsonResponse({"status": u"更新成功"})
         else:
             return JsonResponse({"status": u"更新失败", "msg": u"服务名称已存在"})
@@ -315,6 +332,7 @@ def requisition_list(request):
                 inst.info = alipay
             inst.asset = asset
             inst.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"添加申请单",content=u"添加申请单：{}".format(requisition.asset))
             return JsonResponse({"status": u"添加成功"})
         else:
             return JsonResponse({"status": u"添加失败", "msg": u"表单错误"})
@@ -337,6 +355,7 @@ def requisition_operate(request,id,renew=None):
     if request.method == 'DELETE':
         if ser.status == 2:
             req.delete()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除申请单",content=u"删除申请单：{}".format(req.asset))
             return JsonResponse({"status": u"删除成功"})
         else:
             return JsonResponse({"status": u"删除失败", "msg":"请确保资产已经停用"})
@@ -360,6 +379,10 @@ def requisition_operate(request,id,renew=None):
                 req_old.payment_status = 4
                 req_old.save()
             inst.save()
+            if renew:
+                operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"续费",content=u"续费申请：{}".format(req.asset))
+            else:
+                operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"更新申请单",content=u"更新申请单：{}".format(req.asset))
             return JsonResponse({"status": u"操作成功"})
         else:
             return JsonResponse({"status": u"操作失败", "msg": u"表单错误"})
@@ -387,6 +410,7 @@ def req_approve(request,id,result):
         else:
             req.approve_status = 3
         req.save()
+        operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"审批",content=u"审批申请单：{}".format(req.asset))
         return JsonResponse({"status": u"更改成功"})
     else:
         return JsonResponse({"status": u"更改失败", "msg": u"错误的审核结果"})
@@ -403,6 +427,7 @@ def pay_confirm(request,id):
     ser.end_date = req.end_date
     req.save()
     ser.save()
+    operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"确认付款",content=u"付款申请单：{}".format(req.asset))
     return JsonResponse({"status": u"操作成功"})
 
 def cost_show(request):

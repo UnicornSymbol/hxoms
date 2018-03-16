@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'account',
     'assets',
     'deploy',
+    'audit',
     'rest_framework',
     'django_crontab',
     'djcelery',

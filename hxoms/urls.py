@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^account/', include('account.urls')),
     url(r'^asset/', include('assets.urls')),
     url(r'^deploy/', include('deploy.urls')),
+    url(r'^audit/', include('audit.urls')),
     url(r'^$', views.index, name='index'),
 
 ]

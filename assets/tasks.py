@@ -8,6 +8,7 @@ from celery import task
 from ConfigParser import ConfigParser
 from api.saltapi import SaltAPI
 from assets.models import Server,ServerInfo
+from audit.models import OperateLog
 from django.core.exceptions import ObjectDoesNotExist
 
 #app=Celery('tasks')
@@ -195,10 +196,5 @@ def delete_key(node):
     sapi.delete_key(node)
 
 @task
-def sendmail(mail):
-    print "++++++++++++++++++++++++++++++++++++"
-    print('sending mail to %s...' % mail['to'])
-    time.sleep(2.0)
-    print('mail sent.')
-    print "------------------------------------"
-    return mail['to']
+def operate_log(user,ip,type,content):
+    OperateLog.objects.create(user=user,action_ip=ip,type=type,content=content)

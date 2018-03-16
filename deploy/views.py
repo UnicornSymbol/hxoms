@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ObjectDoesNotExist
 from deploy.models import SaltHost
 from assets.models import Server
+from assets.tasks import operate_log
 from ConfigParser import ConfigParser
 from api.saltapi import SaltAPI
 from django.db.models import Q 
@@ -32,11 +33,13 @@ def key_manager(request):
                 salthost.server.alive = False
                 salthost.server.save()
             salthost.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"删除Key",content=u"删除Key：{}".format(node_name))
             return JsonResponse({"status": u"删除成功"})
         if action == "accept_key":
             sapi.accept_key(node_name)
             salthost.key_status = 1
             salthost.save()
+            operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"接受Key",content=u"接受Key：{}".format(node_name))
             return JsonResponse({"status": u"接受成功"})
         if action == "refresh_host":
             try:
@@ -89,4 +92,5 @@ def refresh_salt_host(request):
         except ObjectDoesNotExist:
             obj.server = None
         obj.save()
+    operate_log.delay(user=request.user.username,ip=request.META.get('HTTP_X_FORWARDED_FOR',request.META['REMOTE_ADDR']),type=u"导入主机",content=u"导入salt主机")
     return JsonResponse({"status": u"刷新完成"})
